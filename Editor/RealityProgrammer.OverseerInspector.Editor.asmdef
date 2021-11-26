@@ -1,0 +1,18 @@
+{
+    "name": "RealityProgrammer.OverseerInspector.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a042fe9e5c1d5b743875413f483b03b9"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

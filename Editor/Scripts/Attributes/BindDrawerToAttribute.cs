@@ -1,0 +1,13 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+public class BindDrawerToAttribute : Attribute
+{
+    public Type AttributeType { get; private set; }
+
+    public BindDrawerToAttribute(Type attr) {
+        AttributeType = attr;
+    }
+}

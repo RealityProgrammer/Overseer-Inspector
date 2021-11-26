@@ -1,0 +1,17 @@
+{
+  "name": "com.realityprogrammer.overseerinspector",
+  "version": "0.0.1",
+  "displayName": "Overseer Inspector",
+  "description": "A custom made package to extend Unity's Inspector experience",
+  "unity": "2020.3",
+  "licensesUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "keywords": [
+	"Editor",
+    "Inspector",
+    "Overseer",
+    "RealityProgrammer"
+  ],
+  "author": {
+    "name": "RealityProgrammer"
+  }
+}
