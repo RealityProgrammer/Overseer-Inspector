@@ -126,4 +126,7 @@ public float damageReduction;
 public float regeneration;
 ```
 ![Foldout Group](https://i.imgur.com/qyO5wVH.png)
+  
+  <h2>Tab Group</h2>
+  WIP...
 </a>
