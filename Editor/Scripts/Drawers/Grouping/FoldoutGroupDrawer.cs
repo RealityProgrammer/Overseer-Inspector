@@ -28,6 +28,7 @@ public class FoldoutGroupDrawer : BaseGroupAttributeDrawer {
     }
 
     public override void DrawLayout() {
+        EditorGUI.indentLevel--;
         var rect = EditorGUILayout.BeginVertical();
 
         if (Event.current.type == EventType.Repaint) {
@@ -58,44 +59,6 @@ public class FoldoutGroupDrawer : BaseGroupAttributeDrawer {
 
         EditorGUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
-        //var rect = EditorGUILayout.BeginVertical();
-
-        //EditorGUI.indentLevel--;
-        //using (new EditorGUI.IndentLevelScope()) {
-        //    rect = EditorGUI.IndentedRect(rect);
-
-        //    if (Event.current.type == EventType.Repaint) {
-        //        boxStyle.Draw(rect, false, false, false, false);
-        //    }
-
-        //    var old = EditorStyles.foldout.fontStyle;
-        //    EditorStyles.foldout.fontStyle = (AssociatedAttribute as BeginFoldoutGroupAttribute).FontStyle;
-
-        //    EditorGUILayout.Space(3);
-
-        //    using (new EditorGUI.IndentLevelScope()) {
-        //        foldoutAnim.target = EditorGUILayout.Foldout(foldoutAnim.target, (AssociatedAttribute as BeginFoldoutGroupAttribute).Name + "(" + NestingLevel + "/" + EditorGUI.indentLevel + ")");
-        //        EditorGUILayout.Space(3);
-
-        //        EditorStyles.foldout.fontStyle = old;
-
-        //        EditorGUILayout.BeginFadeGroup(foldoutAnim.faded);
-
-        //        if (foldoutAnim.faded > 0.001f) {
-        //            using (new EditorGUI.IndentLevelScope()) {
-        //                DrawAllChildsLayout();
-        //            }
-        //        }
-
-        //        EditorGUILayout.Space(2);
-
-        //        EditorGUILayout.EndFadeGroup();
-        //        EditorGUILayout.EndVertical();
-
-        //        EditorGUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-        //    }
-        //}
-
-        //EditorGUI.indentLevel++;
+        EditorGUI.indentLevel++;
     }
 }

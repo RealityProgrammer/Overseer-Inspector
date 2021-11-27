@@ -33,12 +33,21 @@ public static class SerializationUtilities {
 
         FieldInfo ret = targetType.GetField(path[0], DefaultFieldFlags);
 
+        while (ret == null && targetType.BaseType != null) {
+            targetType = targetType.BaseType;
+            ret = targetType.GetField(path[0], DefaultFieldFlags);
+        }
+
         for (int i = 1; i < path.Length; i++) {
             var getValue = ret.GetValue(target);
             ret = getValue.GetType().GetField(path[i], DefaultFieldFlags);
 
+            while (ret == null && targetType.BaseType != null) {
+                targetType = targetType.BaseType;
+                ret = targetType.GetField(path[0], DefaultFieldFlags);
+            }
+
             target = getValue;
-            targetType = target.GetType();
         }
 
         return ret;
