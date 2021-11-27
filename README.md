@@ -45,7 +45,7 @@ public Transform nullableField;
 [ShowIfNull("<NullableProperty>k__BackingField")] public float dummy3;
 [HideIfNull("<NullableProperty>k__BackingField")] public float dummy4;
 ```
-![Validator 1](https://i.imgur.com/mZANVzu.png)
+![Validator 1](https://i.imgur.com/mZANVzu.png)</br>
 Or if you want to have dynamically condition
 ```cs
 public float floatValue;
