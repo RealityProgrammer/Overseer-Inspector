@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -55,6 +56,12 @@ public sealed class OverseerInspector : Editor {
             EditorGUI.BeginChangeCheck();
 
             foreach (var displayable in _displayables) {
+                if (displayable == null) {
+                    Debug.LogWarning("Something went wrong. Overseer Inspector detected a null displayable element.");
+
+                    continue;
+                }
+
                 displayable.DrawLayout();
             }
 

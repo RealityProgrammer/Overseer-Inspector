@@ -77,5 +77,6 @@ public sealed class SerializedFieldContainer {
         return new SerializedFieldContainer(property, property.GetFieldInfo());
     }
 
+    public bool IsBackingField => UnderlyingField != null && UnderlyingField.Name.EndsWith(">k__BackingField");
     public bool IsEndGroup => EndGroup != null;
 }
