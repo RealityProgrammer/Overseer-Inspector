@@ -28,6 +28,7 @@ And there you go, you can bind Attributes for your fields/class members now. And
   <a href="#validator">Validators</a> - 
   <a href="#addition">Additions</a> - 
   <a href="#primary">Primary</a> - 
+  <a href="#group">Grouping</a>
 </p>
 
 <a id="validator">
@@ -107,4 +108,22 @@ public float f4;
 <a id="primary">
   <h2>Primary</h2>
   Primary is a master drawer for field that handle everything, from determine layout progress, to handling the Additions
+</a>
+
+<a id="group">
+  <h2>Grouping</h2>
+  Group is a container that contains all the fields inside it in a form of BeginGroup/EndGroup. Noted that nested group are not very stable at the moment.
+  
+  <h3>Foldout Group</h3>
+  Surround fields inside a foldout group with nice transition
+
+```cs
+[BeginFoldoutGroup("Survivability")]
+public float health;
+public float defense;
+public float damageReduction;
+[EndGroup]
+public float regeneration;
+```
+![Foldout Group](https://i.imgur.com/qyO5wVH.png)
 </a>
