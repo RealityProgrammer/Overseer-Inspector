@@ -12,17 +12,30 @@ namespace RealityProgrammer.OverseerInspector.Runtime.Validation {
         }
 
         public override bool Validation(object target) {
-            var field = target.GetType().GetField(FieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var type = target.GetType();
+
+            var field = type.GetField(FieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             if (field == null) {
+                var property = type.GetProperty(FieldName, BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (property != null) {
+                    object pvalue = property.GetValue(target);
+
+                    if (pvalue is UnityEngine.Object puobj) {
+                        return puobj == null;
+                    }
+
+                    return pvalue == null;
+                }
+
                 return true;
             }
 
-            object value = field.GetValue(target);
-            if (value is UnityEngine.Object uobj) {
-                return uobj == null;
+            object fvalue = field.GetValue(target);
+            if (fvalue is UnityEngine.Object fuobj) {
+                return fuobj == null;
             }
 
-            return value == null;
+            return fvalue == null;
         }
     }
 }
