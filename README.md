@@ -43,8 +43,9 @@ public Transform nullableField;
 [ShowIfNull("nullableField")] public float dummy1;
 [HideIfNull("nullableField")] public float dummy2;
   
-[ShowIfNull("<NullableProperty>k__BackingField")] public float dummy3;
-[HideIfNull("<NullableProperty>k__BackingField")] public float dummy4;
+// Backing fields also works
+[ShowIfNull("NullableProperty")] public float dummy3;
+[HideIfNull("NullableProperty")] public float dummy4;
 ```
 ![Validator 1](https://i.imgur.com/mZANVzu.png)</br>
 Or if you want to have dynamically condition
