@@ -15,7 +15,7 @@ Overseer Inspector are developed and run in Unity 2020.3. So only version above 
 3. Press add, sit back and enjoy hell forming</br>
 
 <h1 align="center">How to use this thing?</h1>
-<br>It's as simple as marking the Behaviour class with a special attribute:</br>
+<br>It's as simple as marking the Behaviour class with a special attribute in the "RealityProgrammer.OverseerInspector.Runtime" namespace:</br>
 
 <p align="center">
   <img src="https://i.imgur.com/2eCmE1k.png" alt="Begin Hell">
@@ -34,7 +34,12 @@ And there you go, you can bind Attributes for your fields/class members now. And
 <a id="validator">
   <h2>Validator</h2>
 </a>
-  Validator is a group of attributes that determine whether to show the field, or hide it from displaying.
+  Validator is a group of attributes that determine whether to show the field, or hide it from displaying. Belong to
+
+```cs
+RealityProgrammer.OverseerInspector.Runtime.Validation
+```
+namespace.
 
 ```cs
 public Transform nullableField;
@@ -43,8 +48,9 @@ public Transform nullableField;
 [ShowIfNull("nullableField")] public float dummy1;
 [HideIfNull("nullableField")] public float dummy2;
   
-[ShowIfNull("<NullableProperty>k__BackingField")] public float dummy3;
-[HideIfNull("<NullableProperty>k__BackingField")] public float dummy4;
+// Backing fields also works
+[ShowIfNull("NullableProperty")] public float dummy3;
+[HideIfNull("NullableProperty")] public float dummy4;
 ```
 ![Validator 1](https://i.imgur.com/mZANVzu.png)</br>
 Or if you want to have dynamically condition
@@ -69,7 +75,12 @@ public float display3;
 
 <a id="addition">
   <h2>Addition</h2>
-  Additions is a collection of attributes that provide extra displayable element to primary drawer. One field can have multiple additions.
+  Additions is a collection of attributes that provide extra displayable element to primary drawer. One field can have multiple additions. Belong to
+  
+```cs
+RealityProgrammer.OverseerInspector.Runtime.Drawers
+```
+namespace.
   
   <h3>MessageBox</h3>
   Show a helpbox above the current field, with custom icon support
@@ -107,12 +118,17 @@ public float f4;
 
 <a id="primary">
   <h2>Primary</h2>
-  Primary is a master drawer for field that handle everything, from determine layout progress, to handling the Additions
+  Primary is a master drawer for field that handle everything, from determine layout progress, to handling the Additions. Same namespace to the Addtions.
 </a>
 
 <a id="group">
   <h2>Grouping</h2>
-  Group is a container that contains all the fields inside it in a form of BeginGroup/EndGroup. Noted that nested group are not very stable at the moment.
+  Group is a container that contains all the fields inside it in a form of BeginGroup/EndGroup. Belong to
+  
+```cs
+RealityProgrammer.OverseerInspector.Runtime.Drawers.Group
+```
+  namespace
   
   <h3>Foldout Group</h3>
   Surround fields inside a foldout group with nice transition
