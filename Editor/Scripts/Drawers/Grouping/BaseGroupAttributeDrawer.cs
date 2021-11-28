@@ -11,4 +11,6 @@ public abstract class BaseGroupAttributeDrawer : BaseAttributeDrawer {
     public virtual bool ShouldCreateNew(OverseerBeginGroupAttribute attribute) {
         return true;
     }
+
+    public string GroupName => ((OverseerBeginGroupAttribute)AssociatedAttribute).Name;
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Globalization;
 using System.Reflection;
 using System.Collections;
@@ -8,6 +9,12 @@ using UnityEditor;
 
 public static class OverseerEditorUtilities
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [System.Diagnostics.Conditional("OVERSEER_INSPECTOR_RPDEVDEBUG")]
+    internal static void RPDevelopmentDebug(string message) {
+        Debug.Log(message);
+    }
+
     private static readonly Action<BaseGroupAttributeDrawer, int> groupNestingLevelAssign;
     static OverseerEditorUtilities() {
         groupNestingLevelAssign = (Action<BaseGroupAttributeDrawer, int>)typeof(BaseGroupAttributeDrawer).GetProperty(nameof(BaseGroupAttributeDrawer.NestingLevel), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetSetMethod(true).CreateDelegate(typeof(Action<BaseGroupAttributeDrawer, int>));
@@ -60,7 +67,7 @@ public static class OverseerEditorUtilities
                     break;
 
                 default:
-                    Debug.LogWarning("Hex color code can only be either 6 or 8 digits.");
+                    Debug.LogWarning("Hex color code can only be either 6 or 8 hex characters.");
                     break;
             }
         } else if (input.StartsWith("rgba(") && input.EndsWith(")")) {
@@ -136,26 +143,8 @@ public static class OverseerEditorUtilities
 
         return false;
     }
-
     public static void DebugControlRect(Color col, float w = 0, float h = 0) {
         EditorGUI.DrawRect(EditorGUILayout.GetControlRect(GUILayout.Width(w), GUILayout.Height(h)), col);
-    }
-
-    public static Rect GetCurrentLayoutRect() {
-        var r = EditorGUILayout.BeginVertical();
-        EditorGUILayout.EndVertical();
-
-        return r;
-    }
-
-    public static Rect GetNextRect() {
-        EditorGUILayout.BeginVertical();
-        EditorGUILayout.EndVertical();
-
-        var r = GUILayoutUtility.GetLastRect();
-        r.y += r.height + EditorGUIUtility.standardVerticalSpacing - 1;
-
-        return r;
     }
 
     public static List<BaseDisplayable> AutoInitializeInspector(SerializedObject serializedObject) {
@@ -167,17 +156,10 @@ public static class OverseerEditorUtilities
             var field = allFields[i];
 
             if (field.BeginGroups != null) {
-                if (TryHandleGroupDrawer(serializedObject, field, out var end, out var drawer)) {
-                    _displayables.Add(drawer);
+                GroupBuildingUtilities.BeginStackGroupTest(allFields, allFields[i], ref i, out var outputDrawer);
 
-                    if (end != null) {
-                        while (!ReferenceEquals(allFields[i], end)) {
-                            i++;
-
-                            if (i >= allFields.Count)
-                                break;
-                        }
-                    }
+                if (outputDrawer != null) {
+                    _displayables.Add(outputDrawer);
                 }
             } else {
                 if (TryHandlePropertyDrawer(field, out var drawer)) {
@@ -189,147 +171,30 @@ public static class OverseerEditorUtilities
         return _displayables;
     }
 
-    private static int groupCounter = -1;
-    public static bool TryHandleGroupDrawer(SerializedObject so, SerializedFieldContainer begin, out SerializedFieldContainer groupEnd, out BaseAttributeDrawer drawer) {
-        if (begin.BeginGroups == null) {
-            if (TryHandlePropertyDrawer(begin, out drawer)) {
-                groupEnd = null;
-                return true;
-            }
-
-            groupEnd = null;
+    internal static bool StackPopMultiple<T>(Stack<T> stack, int count) {
+        if (stack.Count <= count)
             return false;
+
+        for (int i = 0; i < count; i++) {
+            stack.Pop();
         }
 
-        if (begin.BeginGroups.Count == 1) {
-            var groupAttr = begin.BeginGroups[0];
+        return true;
+    }
 
-            bool tryCreate = AttributeDrawerCollector.TryCreateDrawerInstance(groupAttr.GetType(), groupAttr, begin, out var drawerInstance);
-
-            if (tryCreate) {
-                if (drawerInstance is BaseGroupAttributeDrawer groupDrawer) {
-                    groupNestingLevelAssign(groupDrawer, ++groupCounter);
-
-                    groupDrawer.EditorInitialize();
-
-                    var allFields = CachingUtilities.GetAllCachedFields(so, false);
-                    int index = 0;
-
-                    while (true) {
-                        if (ReferenceEquals(allFields[index], begin)) {
-                            break;
-                        }
-
-                        index++;
-                        if (index == allFields.Count) {
-                            Debug.LogError("Something happened");
-                            break;
-                        }
-                    }
-
-                    if (TryHandlePropertyDrawer(allFields[index], out var beginFieldDrawer)) {
-                        groupDrawer.AddChild(beginFieldDrawer);
-                    }
-
-                    if (allFields[index].IsEndGroup) {
-                        groupCounter--;
-                        groupEnd = begin;
-                        drawer = groupDrawer;
-
-                        return true;
-                    }
-
-                    index++;
-
-                    while (index < allFields.Count) {
-                        if (TryHandleGroupDrawer(so, allFields[index], out var nestedEnd, out var nestedDrawers)) {
-                            groupDrawer.AddChild(nestedDrawers);
-                        }
-
-                        if (nestedEnd == null) {
-                            if (allFields[index].IsEndGroup) {
-                                groupCounter--;
-                                groupEnd = allFields[index];
-                                drawer = groupDrawer;
-
-                                return true;
-                            }
-                        } else {
-                            while (!ReferenceEquals(allFields[index], nestedEnd)) {
-                                index++;
-
-                                if (index >= allFields.Count)
-                                    break;
-                            }
-                        }
-
-                        index++;
-                    }
-
-                    //groupEnd = allFields[index - 1];
-                    //return groupDrawer;
-                }
-            }
-
-            drawer = null;
-            groupEnd = null;
+    internal static bool SearchAndIncrementIndex(List<SerializedFieldContainer> all, SerializedFieldContainer search, ref int index) {
+        if (index >= all.Count)
             return false;
-        } else {
-            int index = 0;
-            var allFields = CachingUtilities.GetAllCachedFields(so, false);
 
-            BaseAttributeDrawer previousDrawer = null;
-            for (int groupAttr = begin.BeginGroups.Count - 1; groupAttr >= 0; groupAttr--) {
-                bool tryCreate = AttributeDrawerCollector.TryCreateDrawerInstance(begin.BeginGroups[groupAttr].GetType(), begin.BeginGroups[groupAttr], begin, out var drawerInstance);
+        while (!ReferenceEquals(all[index], search)) {
+            index++;
 
-                if (tryCreate) {
-                    if (drawerInstance is BaseGroupAttributeDrawer groupDrawer) {
-                        groupNestingLevelAssign(groupDrawer, groupAttr);
-
-                        if (previousDrawer != null) {
-                            groupDrawer.AddChild(previousDrawer);
-                        }
-
-                        previousDrawer = groupDrawer;
-                        groupDrawer.EditorInitialize();
-
-                        if (TryHandlePropertyDrawer(allFields[index], out var beginFieldDrawer)) {
-                            previousDrawer.AddChild(beginFieldDrawer);
-                        }
-
-                        if (allFields[index].IsEndGroup) {
-                            groupCounter--;
-                            index++;
-                            continue;
-                        }
-
-                        index++;
-
-                        bool isBreakOut = false;
-                        while (!isBreakOut && index < allFields.Count) {
-                            if (TryHandleGroupDrawer(so, allFields[index], out var nestedEnd, out var nestedDrawer)) {
-                                previousDrawer.AddChild(nestedDrawer);
-                            }
-
-                            if (allFields[index].IsEndGroup) {
-                                groupCounter--;
-                                isBreakOut = true;
-                                index++;
-
-                                continue;
-                            }
-
-                            index++;
-                        }
-                    }
-                }
+            if (index >= all.Count) {
+                return false;
             }
-
-            drawer = previousDrawer;
-
-            groupEnd = allFields[index - 1];
-            return true;
         }
+
+        return true;
     }
 
     public static bool TryHandlePropertyDrawer(SerializedFieldContainer field, out BaseAttributeDrawer drawer) {

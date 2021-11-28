@@ -14,7 +14,7 @@ public sealed class SerializedFieldContainer {
     public BasePrimaryDrawerAttribute PrimaryDrawerAttribute { get; private set; }
     public List<AdditionDrawerAttribute> Additionals { get; private set; }
     public List<OverseerBeginGroupAttribute> BeginGroups { get; private set; }
-    public EndGroupAttribute EndGroup { get; private set; }
+    public int EndGroupCount { get; private set; }
 
     private SerializedFieldContainer(SerializedProperty property, FieldInfo underlying) {
         Property = property;
@@ -49,7 +49,7 @@ public sealed class SerializedFieldContainer {
                         break;
 
                     case EndGroupAttribute end:
-                        EndGroup = end;
+                        EndGroupCount++;
                         break;
 
                     default:
@@ -78,5 +78,5 @@ public sealed class SerializedFieldContainer {
     }
 
     public bool IsBackingField => UnderlyingField != null && UnderlyingField.Name.EndsWith(">k__BackingField");
-    public bool IsEndGroup => EndGroup != null;
+    public bool IsEndGroup => EndGroupCount > 0;
 }

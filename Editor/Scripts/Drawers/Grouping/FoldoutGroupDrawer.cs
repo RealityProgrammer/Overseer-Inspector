@@ -28,20 +28,22 @@ public class FoldoutGroupDrawer : BaseGroupAttributeDrawer {
     }
 
     public override void DrawLayout() {
-        EditorGUI.indentLevel--;
+        //EditorGUI.indentLevel--;
         var rect = EditorGUILayout.BeginVertical();
 
         if (Event.current.type == EventType.Repaint) {
             boxStyle.Draw(EditorGUI.IndentedRect(rect), false, false, false, false);
         }
 
-        using (new EditorGUI.IndentLevelScope(1)) {
+        int level = EditorGUI.indentLevel;
+
+        using (new EditorGUI.IndentLevelScope()) {
             EditorGUILayout.Space(3);
 
             var old = EditorStyles.foldout.fontStyle;
             EditorStyles.foldout.fontStyle = (AssociatedAttribute as BeginFoldoutGroupAttribute).FontStyle;
 
-            foldoutAnim.target = EditorGUILayout.Foldout(foldoutAnim.target, (AssociatedAttribute as BeginFoldoutGroupAttribute).Name);
+            foldoutAnim.target = EditorGUILayout.Foldout(foldoutAnim.target, (AssociatedAttribute as BeginFoldoutGroupAttribute).Name + " (" + NestingLevel + ")");
             EditorStyles.foldout.fontStyle = old;
 
             EditorGUILayout.Space(3);
@@ -59,6 +61,6 @@ public class FoldoutGroupDrawer : BaseGroupAttributeDrawer {
 
         EditorGUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
-        EditorGUI.indentLevel++;
+        //EditorGUI.indentLevel++;
     }
 }
