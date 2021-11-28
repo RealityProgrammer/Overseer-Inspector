@@ -138,5 +138,5 @@ TODO table:
 |:---|:-----:|:----|
 |Nested group|✔️||
 |Method context attribute|❌||
-|Property get set call|❌||
+|Property set call|❌||
 |Regret everything|✔️||
