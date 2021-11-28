@@ -15,7 +15,7 @@ Overseer Inspector are developed and run in Unity 2020.3. So only version above 
 3. Press add, sit back and enjoy hell forming</br>
 
 <h1 align="center">How to use this thing?</h1>
-<br>It's as simple as marking the Behaviour class with a special attribute:</br>
+<br>It's as simple as marking the Behaviour class with a special attribute in the "RealityProgrammer.OverseerInspector.Runtime" namespace:</br>
 
 <p align="center">
   <img src="https://i.imgur.com/2eCmE1k.png" alt="Begin Hell">
