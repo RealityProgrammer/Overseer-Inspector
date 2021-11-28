@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BasePrimaryDrawerAttribute : BaseOverseerDrawerAttribute
-{
-    
+namespace RealityProgrammer.OverseerInspector.Runtime.Drawers {
+    public abstract class BasePrimaryDrawerAttribute : BaseOverseerDrawerAttribute {
+
+    }
 }

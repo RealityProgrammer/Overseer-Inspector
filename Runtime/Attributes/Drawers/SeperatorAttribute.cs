@@ -1,11 +1,11 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine;
 
-public class SeperatorAttribute : AdditionDrawerAttribute
-{
-    public float Normalize { get; private set; } = 1;
+namespace RealityProgrammer.OverseerInspector.Runtime.Drawers {
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true)]
+    public sealed class SeperatorAttribute : AdditionDrawerAttribute {
+        public float Normalize { get; private set; } = 1;
 
-    public int Height { get; set; } = 1;
-    public string ColorParameter { get; set; } = "#CDCDCD";
+        public int Height { get; set; } = 1;
+        public string ColorParameter { get; set; } = "#CDCDCD";
+    }
 }

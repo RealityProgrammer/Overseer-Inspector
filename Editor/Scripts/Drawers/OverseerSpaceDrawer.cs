@@ -1,17 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor;
+using RealityProgrammer.OverseerInspector.Runtime.Drawers;
 
-[BindDrawerTo(typeof(OverseerSpaceAttribute))]
-public class OverseerSpaceDrawer : BaseAttributeDrawer {
-    private OverseerSpaceAttribute underlying;
+namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
+    [BindDrawerTo(typeof(OverseerSpaceAttribute))]
+    public class OverseerSpaceDrawer : BaseAttributeDrawer {
+        private OverseerSpaceAttribute underlying;
 
-    public override void DrawLayout() {
-        if (underlying == null) {
-            underlying = (OverseerSpaceAttribute)AssociatedAttribute;
+        public override void DrawLayout() {
+            if (underlying == null) {
+                underlying = (OverseerSpaceAttribute)AssociatedAttribute;
+            }
+
+            EditorGUILayout.Space(underlying.Amount - 2);
         }
-
-        EditorGUILayout.Space(underlying.Amount - 2);
     }
 }

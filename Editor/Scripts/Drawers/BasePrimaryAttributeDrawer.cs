@@ -1,6 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public abstract class BasePrimaryAttributeDrawer : BaseAttributeDrawer {   
+namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
+    public abstract class BasePrimaryAttributeDrawer : BaseAttributeDrawer {
+    }
 }
