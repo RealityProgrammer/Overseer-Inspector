@@ -36,7 +36,6 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             ["yellow"] = Color.yellow,
             ["orange"] = new Color(1, 0.5f, 0),
         };
-
         public static bool TryHandleColorString(string input, out Color value) {
             value = default;
 
@@ -234,6 +233,130 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
                         }
                     }
                 }
+            }
+        }
+
+        public delegate object TypeLayoutDrawerDelegate(object input, string label);
+        private static readonly Dictionary<Type, TypeLayoutDrawerDelegate> _typeLayoutDrawer = new Dictionary<Type, TypeLayoutDrawerDelegate>() {
+            [typeof(int)] = (input, label) => {
+                return EditorGUILayout.IntField(label, (int)input);
+            },
+            [typeof(string)] = (input, label) => {
+                return EditorGUILayout.TextField(label, (string)input);
+            },
+            [typeof(bool)] = (input, label) => {
+                return EditorGUILayout.Toggle(label, (bool)input);
+            },
+            [typeof(float)] = (input, label) => {
+                return EditorGUILayout.FloatField(label, (float)input);
+            },
+            [typeof(byte)] = (input, label) => {
+                return Mathf.Clamp(EditorGUILayout.IntField(label, (int)input), byte.MinValue, byte.MaxValue);
+            },
+            [typeof(sbyte)] = (input, label) => {
+                return Mathf.Clamp(EditorGUILayout.IntField(label, (int)input), sbyte.MinValue, sbyte.MaxValue);
+            },
+            [typeof(char)] = (input, label) => {
+                var cast = ((char)input).ToString();
+                var field = EditorGUILayout.TextField(label, cast);
+
+                return field.Length == 0 ? '\0' : field[0];
+            },
+            [typeof(double)] = (input, label) => {
+                return EditorGUILayout.DoubleField(label, (double)input);
+            },
+            [typeof(uint)] = (input, label) => {
+                return Mathf.Clamp(EditorGUILayout.LongField(label, (uint)input), uint.MinValue, uint.MaxValue);
+            },
+            [typeof(long)] = (input, label) => {
+                return EditorGUILayout.LongField(label, (long)input);
+            },
+            [typeof(short)] = (input, label) => {
+                return Mathf.Clamp(EditorGUILayout.LongField(label, (short)input), short.MinValue, short.MaxValue);
+            },
+            [typeof(ushort)] = (input, label) => {
+                return Mathf.Clamp(EditorGUILayout.LongField(label, (ushort)input), ushort.MinValue, ushort.MaxValue);
+            },
+            [typeof(Vector2)] = (input, label) => {
+                return EditorGUILayout.Vector2Field(label, (Vector2)input);
+            },
+            [typeof(Vector3)] = (input, label) => {
+                return EditorGUILayout.Vector3Field(label, (Vector3)input);
+            },
+            [typeof(Vector2Int)] = (input, label) => {
+                return EditorGUILayout.Vector2IntField(label, (Vector2Int)input);
+            },
+            [typeof(Vector3Int)] = (input, label) => {
+                return EditorGUILayout.Vector3IntField(label, (Vector3Int)input);
+            },
+            [typeof(Vector4)] = (input, label) => {
+                return EditorGUILayout.Vector4Field(label, (Vector4)input);
+            },
+            [typeof(Quaternion)] = (input, label) => {
+                var q = (Quaternion)input;
+
+                EditorGUILayout.LabelField(label);
+                q.x = Mathf.Clamp01(EditorGUILayout.FloatField("X", q.x));
+                q.y = Mathf.Clamp01(EditorGUILayout.FloatField("Y", q.y));
+                q.z = Mathf.Clamp01(EditorGUILayout.FloatField("Z", q.z));
+                q.w = Mathf.Clamp01(EditorGUILayout.FloatField("W", q.w));
+
+                return q;
+            },
+            [typeof(Rect)] = (input, label) => {
+                return EditorGUILayout.RectField(label, (Rect)input);
+            },
+            [typeof(RectInt)] = (input, label) => {
+                return EditorGUILayout.RectIntField(label, (RectInt)input);
+            },
+            [typeof(Bounds)] = (input, label) => {
+                return EditorGUILayout.BoundsField(label, (Bounds)input);
+            },
+            [typeof(BoundsInt)] = (input, label) => {
+                return EditorGUILayout.BoundsIntField(label, (BoundsInt)input);
+            },
+            [typeof(Matrix4x4)] = (input, label) => {
+                var q = (Matrix4x4)input;
+
+                EditorGUILayout.LabelField(label);
+
+                EditorGUILayout.BeginVertical();
+                for (int y = 0; y < 4; y++) {
+                    EditorGUILayout.BeginHorizontal();
+                    for (int x = 0; x < 4; x++) {
+                        q[y, x] = EditorGUILayout.FloatField(q[y, x]);
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
+                EditorGUILayout.EndVertical();
+
+                return q;
+            },
+            [typeof(Color32)] = (input, label) => {
+                return EditorGUILayout.ColorField(label, (Color32)input);
+            },
+            [typeof(Color)] = (input, label) => {
+                return EditorGUILayout.ColorField(label, (Color)input);
+            },
+            [typeof(LayerMask)] = (input, label) => {
+                return EditorGUILayout.LayerField(label, (LayerMask)input);
+            },
+            [typeof(AnimationCurve)] = (input, label) => {
+                return EditorGUILayout.CurveField(label, (AnimationCurve)input);
+            },
+            [typeof(Gradient)] = (input, label) => {
+                return EditorGUILayout.GradientField(label, (Gradient)input);
+            },
+        };
+        public static object DrawLayoutBasedOnType(object input, Type type, string label) {
+            if (input is UnityEngine.Object) {
+                return EditorGUILayout.ObjectField(label, (UnityEngine.Object)input, input.GetType(), true);
+            } else {
+                if (_typeLayoutDrawer.TryGetValue(type, out var @delegate)) {
+                    return @delegate.Invoke(input, label); 
+                }
+
+                return null;
             }
         }
     }

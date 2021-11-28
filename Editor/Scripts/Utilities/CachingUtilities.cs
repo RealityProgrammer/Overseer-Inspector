@@ -1,10 +1,11 @@
 using System;
-using System.Linq;
+using System.Text;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using RealityProgrammer.OverseerInspector.Runtime;
+using RealityProgrammer.OverseerInspector.Runtime.Miscs;
 using RealityProgrammer.OverseerInspector.Runtime.Validation;
 
 namespace RealityProgrammer.OverseerInspector.Editors.Utility {
@@ -44,7 +45,7 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
         }
         #endregion
 
-        #region Data Caches
+        #region Field Caches
         private static Dictionary<SerializedObject, List<SerializedFieldContainer>> _allFieldsWithChildren = new Dictionary<SerializedObject, List<SerializedFieldContainer>>();
         private static Dictionary<SerializedObject, List<SerializedFieldContainer>> _allFields = new Dictionary<SerializedObject, List<SerializedFieldContainer>>();
 
@@ -76,6 +77,115 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
                     yield return validation;
                 }
             }
+        }
+        #endregion
+
+        #region Method Data Caches
+        public sealed class MethodButtonCache {
+            public MethodInfo Method { get; private set; }
+            public MethodButtonAttribute MethodButton { get; private set; }
+            public ParameterInfo[] Parameters { get; private set; }
+            public bool UseParameter => Parameters.Length > 0;
+            public bool IsParameterFoldout { get; set; }
+
+            public MethodButtonHandler Handler { get; private set; }
+
+            internal MethodButtonCache(MethodInfo mtd, MethodButtonAttribute attr) {
+                Method = mtd;
+                MethodButton = attr;
+
+                Parameters = mtd.GetParameters();
+            }
+
+            private static readonly HashSet<Type> serializableTypes = new HashSet<Type>() {
+                typeof(Vector2), typeof(Vector3), typeof(Vector4), typeof(Quaternion),
+                typeof(Vector2Int), typeof(Vector3Int),
+                typeof(Rect), typeof(RectInt), typeof(Bounds), typeof(BoundsInt),
+                typeof(Matrix4x4),
+                typeof(Color), typeof(Color32),
+                typeof(LayerMask),
+
+                typeof(string),
+                
+                typeof(AnimationCurve), typeof(Gradient), typeof(RectOffset), typeof(GUIStyle)
+            };
+            private static readonly Type unityObjectType = typeof(UnityEngine.Object);
+            public bool Validate() {
+                if (Method.IsGenericMethod || Method.IsGenericMethodDefinition) {
+                    Debug.LogWarning("MethodButtonAttribute cannot be used for methods with generic definition or generic parameter(s).");
+
+                    return false;
+                }
+
+                foreach (var parameter in Parameters) {
+                    if (!IsTypeSupported(parameter.ParameterType)) {
+                        StringBuilder sb = new StringBuilder();
+                        sb.AppendLine("MethodButtonAttribute cannot be used for methods with invalid parameter. Informations:");
+                        sb.Append("Method name: ").AppendLine(Method.Name);
+                        sb.Append("Method declaring type: ").AppendLine(Method.DeclaringType.AssemblyQualifiedName);
+                        sb.Append("Invalid parameter: ").AppendLine(parameter.Name);
+
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public void Initialize() {
+                switch (MethodButton.InvokeStyle) {
+                    case MethodInvocationStyle.Compiled:
+                        Debug.LogWarning("MethodButtonAttribute with invocation type of Compiled is not supported yet");
+                        break;
+
+                    case MethodInvocationStyle.ReflectionInvoke:
+                    default:
+                        Handler = new MethodButtonReflectionInvokeHandler(this);
+                        Handler.Initialize();
+                        break;
+                }
+            }
+
+            private static bool IsTypeSupported(Type type) {
+                if (serializableTypes.Contains(type))
+                    return true;
+
+                if (type.IsPrimitive)
+                    return true;
+
+                if (!type.IsAbstract && !type.IsSealed && (type.IsSubclassOf(unityObjectType) || type == unityObjectType))
+                    return true;
+
+                return false;
+            }
+        }
+
+        private static Dictionary<Type, List<MethodButtonCache>> _methodButtonCaches = new Dictionary<Type, List<MethodButtonCache>>();
+
+        public static List<MethodButtonCache> GetAllMethodButtonCache(Type type) {
+            if (type == null)
+                return null;
+
+            if (_methodButtonCaches.TryGetValue(type, out var caches)) {
+                return caches;
+            }
+
+            caches = new List<MethodButtonCache>();
+            foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy)) {
+                var attr = method.GetCustomAttribute<MethodButtonAttribute>();
+
+                if (attr != null) {
+                    var cache = new MethodButtonCache(method, attr);
+
+                    if (cache.Validate()) {
+                        cache.Initialize();
+                        caches.Add(cache);
+                    }
+                }
+            }
+
+            _methodButtonCaches.Add(type, caches);
+            return caches;
         }
         #endregion
     }
