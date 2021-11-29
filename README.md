@@ -151,7 +151,7 @@ public float regeneration;
 This is one person project, everything might not be performance, nor be bug free, but suggestion and bug report are highly welcomed.
 TODO table:
 |Context|Status|Notes|
-|:---|:-----:|:----|
+|:--:|:-----:|:---:|
 |Nested group|✔️||
 |Method context attribute|➖|Not fully implemented yet. Only MethodButtonAttribute are used right now|
 |Property set call|❌||
