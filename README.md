@@ -153,6 +153,6 @@ TODO table:
 |Context|Status|Notes|
 |:---|:-----:|:----|
 |Nested group|✔️||
-|Method context attribute|❌||
+|Method context attribute|➖|Not fully implemented yet. Only MethodButtonAttribute are used right now|
 |Property set call|❌||
 |Regret everything|✔️||
