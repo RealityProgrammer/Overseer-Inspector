@@ -72,10 +72,7 @@ namespace RealityProgrammer.OverseerInspector.Editors {
             LastValidation = true;
 
             foreach (var validation in allValidates) {
-                var sw = System.Diagnostics.Stopwatch.StartNew();
                 bool res = CachingUtilities.ValidateAttribute(validation, Property.serializedObject.targetObject);
-                sw.Stop();
-                Debug.Log(sw.ElapsedTicks);
 
                 if (!res) {
                     LastValidation = false;
