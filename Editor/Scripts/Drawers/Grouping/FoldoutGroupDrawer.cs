@@ -31,7 +31,6 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers.Group {
         }
 
         public override void DrawLayout() {
-            //EditorGUI.indentLevel--;
             var rect = EditorGUILayout.BeginVertical();
 
             if (Event.current.type == EventType.Repaint) {
@@ -46,7 +45,7 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers.Group {
                 var old = EditorStyles.foldout.fontStyle;
                 EditorStyles.foldout.fontStyle = (AssociatedAttribute as BeginFoldoutGroupAttribute).FontStyle;
 
-                foldoutAnim.target = EditorGUILayout.Foldout(foldoutAnim.target, (AssociatedAttribute as BeginFoldoutGroupAttribute).Name + " (" + NestingLevel + ")");
+                foldoutAnim.target = EditorGUILayout.Foldout(foldoutAnim.target, (AssociatedAttribute as BeginFoldoutGroupAttribute).Name);
                 EditorStyles.foldout.fontStyle = old;
 
                 EditorGUILayout.Space(3);
@@ -63,8 +62,6 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers.Group {
             EditorGUILayout.EndVertical();
 
             EditorGUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
-            //EditorGUI.indentLevel++;
         }
     }
 }
