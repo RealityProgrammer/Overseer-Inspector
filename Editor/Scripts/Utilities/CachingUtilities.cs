@@ -5,12 +5,36 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using RealityProgrammer.OverseerInspector.Runtime;
+using RealityProgrammer.OverseerInspector.Editors.Attributes;
 using RealityProgrammer.OverseerInspector.Runtime.Miscs;
 using RealityProgrammer.OverseerInspector.Runtime.Validation;
 
 namespace RealityProgrammer.OverseerInspector.Editors.Utility {
     public static class CachingUtilities {
         public static Type UnityEngineObjectType = typeof(UnityEngine.Object);
+
+        // Collection of conditional validate type with it's correspond validate method
+        private static readonly Dictionary<Type, Func<OverseerConditionalAttribute, object, bool>> _conditionalValidateMethods;
+        static CachingUtilities() {
+            _conditionalValidateMethods = new Dictionary<Type, Func<OverseerConditionalAttribute, object, bool>>();
+
+            var validationMethods = TypeCache.GetMethodsWithAttribute<ConditionalConnectAttribute>();
+
+            foreach (var method in validationMethods) {
+                if (method.IsStatic && method.ReturnType == typeof(bool)) {
+                    var parameters = method.GetParameters();
+
+                    if (parameters.Length == 2) {
+                        if (parameters[0].ParameterType == typeof(OverseerConditionalAttribute) && parameters[1].ParameterType == typeof(object)) {
+                            var attr = method.GetCustomAttribute<ConditionalConnectAttribute>();
+
+                            _conditionalValidateMethods[attr.ConditionalType] = (Func<OverseerConditionalAttribute, object, bool>)method.CreateDelegate(typeof(Func<OverseerConditionalAttribute, object, bool>));
+                        }
+                    }
+                }
+            }
+        }
+        
 
         #region Qualification
         private static HashSet<Type> _inspectorEnabledTypes = new HashSet<Type>();
@@ -69,11 +93,11 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             }
         }
 
-        public static IEnumerable<ConditionalValidationAttribute> GetAllValidationAttribute(FieldInfo field) {
+        public static IEnumerable<OverseerConditionalAttribute> GetAllValidationAttribute(FieldInfo field) {
             var attrs = field.GetCustomAttributes();
 
             foreach (var attr in attrs) {
-                if (attr is ConditionalValidationAttribute validation) {
+                if (attr is OverseerConditionalAttribute validation) {
                     yield return validation;
                 }
             }
@@ -186,6 +210,19 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
 
             _methodButtonCaches.Add(type, caches);
             return caches;
+        }
+        #endregion
+
+        #region Conditional Caches
+        public static bool ValidateAttribute(OverseerConditionalAttribute conditional, object target) {
+            if (conditional == null)
+                return true;
+
+            if (_conditionalValidateMethods.TryGetValue(conditional.GetType(), out var method)) {
+                return method.Invoke(conditional, target);
+            }
+
+            return true;
         }
         #endregion
     }

@@ -4,9 +4,6 @@ using UnityEngine;
 
 namespace RealityProgrammer.OverseerInspector.Runtime.Validation {
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-    public sealed class PlayModeOnlyAttribute : ConditionalValidationAttribute {
-        public override bool Validation(object target) {
-            return Application.isPlaying;
-        }
+    public sealed class EditModeOnlyAttribute : OverseerConditionalAttribute {
     }
 }

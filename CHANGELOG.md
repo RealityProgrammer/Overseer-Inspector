@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.0.7] - 2021-11-29
+### Work in progress
+- Code emitting for faster performance.
+
+### Changed
+- Conditional attribute valuation moved to Editors, not in Runtime anymore, and replace with \[ConditionalConnect\] attribute
+
 ## [0.0.6] - 2021-11-28
 ### Added
 - Method button

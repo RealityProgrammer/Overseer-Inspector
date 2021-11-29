@@ -17,18 +17,6 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             Debug.Log(message);
         }
 
-        public static bool CheckValidations(IEnumerable<ConditionalValidationAttribute> conditions, object target) {
-            foreach (var condition in conditions) {
-                bool validate = condition.Validation(target);
-
-                if (!validate) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         private static readonly Dictionary<string, Color> _colors = new Dictionary<string, Color> {
             ["red"] = Color.red,
             ["green"] = Color.green,

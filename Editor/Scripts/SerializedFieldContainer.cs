@@ -44,7 +44,7 @@ namespace RealityProgrammer.OverseerInspector.Editors {
                             PrimaryDrawerAttribute = primary;
                             break;
 
-                        case ConditionalValidationAttribute _:
+                        case OverseerConditionalAttribute _:
                             break;
 
                         case OverseerBeginGroupAttribute beginGroup:
@@ -72,7 +72,12 @@ namespace RealityProgrammer.OverseerInspector.Editors {
             LastValidation = true;
 
             foreach (var validation in allValidates) {
-                if (!validation.Validation(Property.serializedObject.targetObject)) {
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                bool res = CachingUtilities.ValidateAttribute(validation, Property.serializedObject.targetObject);
+                sw.Stop();
+                Debug.Log(sw.ElapsedTicks);
+
+                if (!res) {
                     LastValidation = false;
                     break;
                 }
