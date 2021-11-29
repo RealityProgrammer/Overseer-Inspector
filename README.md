@@ -25,16 +25,16 @@ And there you go, you can bind Attributes for your fields/class members now. And
 # Attributes</h1>
 
 <p align="center"> 
-  <a href="#validator">Validators</a> - 
+  <a href="#conditional">Conditionals</a> - 
   <a href="#addition">Additions</a> - 
   <a href="#primary">Primary</a> - 
   <a href="#group">Grouping</a>
 </p>
 
-<a id="validator">
-  <h2>Validator</h2>
+<a id="conditional">
+  <h2>Conditionals</h2>
 </a>
-  Validator is a group of attributes that determine whether to show the field, or hide it from displaying. Belong to
+  Conditionals is a group of attributes that determine whether to show the field, or hide it from displaying. Belong to
 
 ```cs
 RealityProgrammer.OverseerInspector.Runtime.Validation
@@ -117,7 +117,7 @@ public float f4;
 </a>
 
 <a id="primary">
-  <h2>Primary</h2>
+  <h2>Primary Drawers</h2>
   Primary is a master drawer for field that handle everything, from determine layout progress, to handling the Additions. Same namespace to the Addtions.
 </a>
 
