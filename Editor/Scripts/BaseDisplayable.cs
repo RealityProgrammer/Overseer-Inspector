@@ -48,5 +48,7 @@ namespace RealityProgrammer.OverseerInspector.Editors {
         public bool HasParent => _parent != null;
 
         public abstract void DrawLayout();
+
+        public virtual void Initialize() { }
     }
 }

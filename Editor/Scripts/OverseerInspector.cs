@@ -19,8 +19,7 @@ namespace RealityProgrammer.OverseerInspector.Editors {
             _requestConstantRepaint = true;
         }
 
-        private List<SerializedFieldContainer> allFields;
-        public ReadOnlyCollection<SerializedFieldContainer> AllFields => new ReadOnlyCollection<SerializedFieldContainer>(allFields);
+        private ReadOnlyCollection<OverseerInspectingMember> allFields;
 
         private List<BaseDisplayable> _displayables;
         public int FieldPointer { get; set; } = 0;
@@ -30,7 +29,7 @@ namespace RealityProgrammer.OverseerInspector.Editors {
                 CheckLightTheme();
                 CurrentInspector = this;
 
-                allFields = CachingUtilities.GetAllCachedFields(serializedObject, false);
+                allFields = CachingUtilities.RetrieveInspectingMembers(serializedObject);
                 _displayables = OverseerEditorUtilities.AutoInitializeInspector(serializedObject);
 
                 foreach (var field in allFields) {
@@ -66,36 +65,36 @@ namespace RealityProgrammer.OverseerInspector.Editors {
                     displayable.DrawLayout();
                 }
 
-                var allMethodBtns = CachingUtilities.GetAllMethodButtonCache(serializedObject.targetObject.GetType());
-                if (allMethodBtns.Count != 0) {
-                    foreach (var methodBtn in allMethodBtns) {
-                        var name = methodBtn.MethodButton.DisplayName ?? ObjectNames.NicifyVariableName(methodBtn.Method.Name);
+                //var allMethodBtns = CachingUtilities.GetAllMethodButtonCache(serializedObject.targetObject.GetType());
+                //if (allMethodBtns.Count != 0) {
+                //    foreach (var methodBtn in allMethodBtns) {
+                //        var name = methodBtn.MethodButton.DisplayName ?? ObjectNames.NicifyVariableName(methodBtn.Method.Name);
 
-                        if (methodBtn.UseParameter) {
-                            var rect = EditorGUILayout.BeginVertical();
+                //        if (methodBtn.UseParameter) {
+                //            var rect = EditorGUILayout.BeginVertical();
 
-                            EditorGUILayout.Space(2);
-                            if (Event.current.type == EventType.Repaint) {
-                                ((GUIStyle)"HelpBox").Draw(new Rect(rect.x - 15, rect.y, rect.width + 15, rect.height), false, false, false, false);
-                            }
+                //            EditorGUILayout.Space(2);
+                //            if (Event.current.type == EventType.Repaint) {
+                //                ((GUIStyle)"HelpBox").Draw(new Rect(rect.x - 15, rect.y, rect.width + 15, rect.height), false, false, false, false);
+                //            }
 
-                            if (methodBtn.IsParameterFoldout = EditorGUILayout.Foldout(methodBtn.IsParameterFoldout, name)) {
-                                if (GUILayout.Button("Invoke")) {
-                                    methodBtn.Handler?.Invoke(serializedObject.targetObject);
-                                }
+                //            if (methodBtn.IsParameterFoldout = EditorGUILayout.Foldout(methodBtn.IsParameterFoldout, name)) {
+                //                if (GUILayout.Button("Invoke")) {
+                //                    methodBtn.Handler?.Invoke(serializedObject.targetObject);
+                //                }
 
-                                methodBtn.Handler?.DrawLayoutParameters();
-                            }
+                //                methodBtn.Handler?.DrawLayoutParameters();
+                //            }
 
-                            EditorGUILayout.Space(2);
-                            EditorGUILayout.EndVertical();
-                        } else {
-                            if (GUILayout.Button(name)) {
-                                methodBtn.Method.Invoke(serializedObject.targetObject, null);
-                            }
-                        }
-                    }
-                }
+                //            EditorGUILayout.Space(2);
+                //            EditorGUILayout.EndVertical();
+                //        } else {
+                //            if (GUILayout.Button(name)) {
+                //                methodBtn.Method.Invoke(serializedObject.targetObject, null);
+                //            }
+                //        }
+                //    }
+                //}
 
                 if (EditorGUI.EndChangeCheck()) {
                     serializedObject.ApplyModifiedProperties();

@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEditor;
 using RealityProgrammer.OverseerInspector.Runtime.Drawers;
 using RealityProgrammer.OverseerInspector.Editors.Drawers;
@@ -14,9 +15,8 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
         private static readonly Type baseDrawerType = typeof(BaseOverseerDrawerAttribute);
 
         // For the sake of safe code
-        private static readonly Action<BaseAttributeDrawer, SerializedObject> associatedObjectAssigner;
         private static readonly Action<BaseAttributeDrawer, BaseOverseerDrawerAttribute> associatedAttributeAssigner;
-        private static readonly Action<BaseAttributeDrawer, SerializedFieldContainer> associatedFieldAssigner;
+        private static readonly Action<BaseAttributeDrawer, OverseerInspectingMember> associatedFieldAssigner;
 
         static AttributeDrawerCollector() {
             var allDrawers = TypeCache.GetTypesWithAttribute<BindDrawerToAttribute>();
@@ -33,9 +33,8 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             }
 
             var type = typeof(BaseAttributeDrawer);
-            associatedObjectAssigner = (Action<BaseAttributeDrawer, SerializedObject>)type.GetProperty(nameof(BaseAttributeDrawer.AssociatedObject), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetSetMethod(true).CreateDelegate(typeof(Action<BaseAttributeDrawer, SerializedObject>));
             associatedAttributeAssigner = (Action<BaseAttributeDrawer, BaseOverseerDrawerAttribute>)type.GetProperty(nameof(BaseAttributeDrawer.AssociatedAttribute), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetSetMethod(true).CreateDelegate(typeof(Action<BaseAttributeDrawer, BaseOverseerDrawerAttribute>));
-            associatedFieldAssigner = (Action<BaseAttributeDrawer, SerializedFieldContainer>)type.GetProperty(nameof(BaseAttributeDrawer.AssociatedField), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetSetMethod(true).CreateDelegate(typeof(Action<BaseAttributeDrawer, SerializedFieldContainer>));
+            associatedFieldAssigner = (Action<BaseAttributeDrawer, OverseerInspectingMember>)type.GetProperty(nameof(BaseAttributeDrawer.AssociatedMember), BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetSetMethod(true).CreateDelegate(typeof(Action<BaseAttributeDrawer, OverseerInspectingMember>));
         }
 
         public static bool TryRetrieveDrawer<T>(out Type drawer) where T : BaseOverseerDrawerAttribute {
@@ -51,15 +50,16 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
         /// </summary>
         /// <param name="attrType">Type of Runtime Drawer Attribute</typeparam>
         /// <param name="attrInstance">Associated Attribute binded to created drawer instance</param>
-        /// <param name="field">Associated Field binded to created drawer instance</param>
+        /// <param name="member">Associated Field binded to created drawer instance</param>
         /// <param name="drawer">Drawer instance output</param>
         /// <returns>Whether the creation success</returns>
-        public static bool TryCreateDrawerInstance(Type attrType, BaseOverseerDrawerAttribute attrInstance, SerializedFieldContainer field, out BaseAttributeDrawer drawer) {
-            if (attrType == null || attrInstance == null) {
+        public static bool TryCreateDrawerInstance(Type attrType, BaseOverseerDrawerAttribute attrInstance, OverseerInspectingMember member, out BaseAttributeDrawer drawer) {
+            if ((attrType == null || attrInstance == null) && member.ReflectionCache.Type == ReflectionTargetType.Field) {
                 FieldDisplayer fd = new FieldDisplayer();
 
-                associatedFieldAssigner.Invoke(fd, field);
-                associatedObjectAssigner.Invoke(fd, field.Property.serializedObject);
+                associatedFieldAssigner.Invoke(fd, member);
+
+                fd.Initialize();
 
                 drawer = fd;
                 return true;
@@ -71,8 +71,9 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
                 BaseAttributeDrawer drawerInstance = Activator.CreateInstance(drawerType) as BaseAttributeDrawer;
 
                 associatedAttributeAssigner.Invoke(drawerInstance, attrInstance);
-                associatedFieldAssigner.Invoke(drawerInstance, field);
-                associatedObjectAssigner.Invoke(drawerInstance, field.Property.serializedObject);
+                associatedFieldAssigner.Invoke(drawerInstance, member);
+
+                drawerInstance.Initialize();
 
                 drawer = drawerInstance;
                 return true;

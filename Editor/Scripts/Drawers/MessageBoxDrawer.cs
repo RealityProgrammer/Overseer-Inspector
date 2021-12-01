@@ -21,7 +21,7 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
         }
 
         public override void DrawLayout() {
-            if (!AssociatedField.LastValidation)
+            if (!AssociatedMember.LastValidation)
                 return;
 
             DrawAllChildsLayout();

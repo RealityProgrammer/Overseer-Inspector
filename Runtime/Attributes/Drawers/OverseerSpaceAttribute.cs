@@ -1,7 +1,7 @@
 using System;
 
 namespace RealityProgrammer.OverseerInspector.Runtime.Drawers {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
     public sealed class OverseerSpaceAttribute : AdditionDrawerAttribute {
         public float Amount { get; private set; }
         public OverseerSpaceAttribute(float space) {

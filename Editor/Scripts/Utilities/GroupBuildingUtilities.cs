@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System;
 using System.Reflection;
 using UnityEngine;
@@ -25,23 +26,23 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
         }
 
         static int nestedLevelCounter = 0;
-        static Dictionary<SerializedFieldContainer, int> _qegt = new Dictionary<SerializedFieldContainer, int>();
+        static Dictionary<OverseerInspectingMember, int> _qegt = new Dictionary<OverseerInspectingMember, int>();
         static Stack<GroupElementStack> _stackGroupTest = new Stack<GroupElementStack>();
-        internal static void BeginStackGroupTest(List<SerializedFieldContainer> allFields, SerializedFieldContainer begin, ref int fieldPointer, out BaseAttributeDrawer outputDrawer) {
+        internal static void BeginBuildGroupDrawer(ReadOnlyCollection<OverseerInspectingMember> allFields, OverseerInspectingMember begin, ref int fieldPointer, out BaseAttributeDrawer outputDrawer) {
             _qegt.Clear();
             _stackGroupTest.Clear();
             nestedLevelCounter = 0;
 
-            QueueGroupTest(allFields, begin, ref fieldPointer, out outputDrawer);
+            BuildGroupInternal(allFields, begin, ref fieldPointer, out outputDrawer);
         }
 
-        private static void QueueGroupTest(List<SerializedFieldContainer> allFields, SerializedFieldContainer begin, ref int index, out BaseAttributeDrawer outputDrawer) {
+        private static void BuildGroupInternal(ReadOnlyCollection<OverseerInspectingMember> allMembers, OverseerInspectingMember begin, ref int index, out BaseAttributeDrawer outputDrawer) {
             outputDrawer = null;
 
-            for (int i = 0; i < begin.BeginGroups.Count; i++) {
-                if (AttributeDrawerCollector.TryCreateDrawerInstance(begin.BeginGroups[i].GetType(), begin.BeginGroups[i], begin, out var drawerInstance)) {
+            for (int i = 0; i < begin.ReflectionCache.BeginGroups.Count; i++) {
+                if (AttributeDrawerCollector.TryCreateDrawerInstance(begin.ReflectionCache.BeginGroups[i].GetType(), begin.ReflectionCache.BeginGroups[i], begin, out var drawerInstance)) {
                     if (drawerInstance is BaseGroupAttributeDrawer _drawerInstance) {
-                        _stackGroupTest.Push(new GroupElementStack(begin.BeginGroups[i], _drawerInstance));
+                        _stackGroupTest.Push(new GroupElementStack(begin.ReflectionCache.BeginGroups[i], _drawerInstance));
                         groupNestingLevelAssign(_drawerInstance, nestedLevelCounter++);
 
                         OverseerEditorUtilities.RPDevelopmentDebug("Push group: " + _drawerInstance.GroupName + ". Current field index: " + index + ". Stack count: " + _stackGroupTest.Count);
@@ -49,19 +50,19 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
                 }
             }
 
-            while (_stackGroupTest.Count != 0 && index < allFields.Count) {
-                var currField = allFields[index];
+            while (_stackGroupTest.Count != 0 && index < allMembers.Count) {
+                var currField = allMembers[index];
                 bool continueFlag = false;
 
-                bool recursionCond = !ReferenceEquals(currField, begin) && currField.BeginGroups != null && currField.BeginGroups.Count >= 1;
+                bool recursionCond = !ReferenceEquals(currField, begin) && currField.ReflectionCache.BeginGroups != null && currField.ReflectionCache.BeginGroups.Count >= 1;
                 if (recursionCond) {
-                    QueueGroupTest(allFields, currField, ref index, out outputDrawer);
+                    BuildGroupInternal(allMembers, currField, ref index, out outputDrawer);
                     continue;
                 }
 
                 if (currField.IsEndGroup) {
                     if (!_qegt.ContainsKey(currField)) {
-                        _qegt[currField] = currField.EndGroupCount;
+                        _qegt[currField] = currField.ReflectionCache.EndGroupCount;
                     }
 
                     while (_qegt[currField] > 0) {
@@ -74,14 +75,14 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
                             outputDrawer = pop.GroupDrawer;
                         }
 
-                        if (_qegt[currField] == currField.EndGroupCount) {
-                            if (OverseerEditorUtilities.TryHandlePropertyDrawer(currField, out var child)) {
+                        if (_qegt[currField] == currField.ReflectionCache.EndGroupCount) {
+                            if (OverseerEditorUtilities.TryHandlePrimaryDrawer(currField, out var child)) {
                                 pop.GroupDrawer.AddChild(child);
                             }
 
-                            OverseerEditorUtilities.RPDevelopmentDebug("Handle end group field " + currField.UnderlyingField.Name + ", Pop: " + pop.Attribute.Name + ", Remain: " + _stackGroupTest.Count + ", Current end count: " + (_qegt[currField] - 1) + ", Current field index: " + index);
+                            OverseerEditorUtilities.RPDevelopmentDebug("Handle end group field " + currField.ReflectionCache.Name + ", Pop: " + pop.Attribute.Name + ", Remain: " + _stackGroupTest.Count + ", Current end count: " + (_qegt[currField] - 1) + ", Current field index: " + index);
                         } else {
-                            OverseerEditorUtilities.RPDevelopmentDebug("End group field handled " + currField.UnderlyingField.Name + ", Pop: " + pop.Attribute.Name + ", Remain: " + _stackGroupTest.Count + ", Current end count: " + (_qegt[currField] - 1) + ", Current field index: " + index);
+                            OverseerEditorUtilities.RPDevelopmentDebug("End group field handled " + currField.ReflectionCache.Name + ", Pop: " + pop.Attribute.Name + ", Remain: " + _stackGroupTest.Count + ", Current end count: " + (_qegt[currField] - 1) + ", Current field index: " + index);
                         }
 
                         _qegt[currField]--;
@@ -92,14 +93,14 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
                         }
                     }
                 } else {
-                    if (OverseerEditorUtilities.TryHandlePropertyDrawer(currField, out var child)) {
+                    if (OverseerEditorUtilities.TryHandlePrimaryDrawer(currField, out var child)) {
                         _stackGroupTest.Peek().GroupDrawer.AddChild(child);
                     }
 
-                    OverseerEditorUtilities.RPDevelopmentDebug("Handle field " + currField.UnderlyingField.Name + " to group " + _stackGroupTest.Peek().Attribute.Name + ". Current field index: " + index);
+                    OverseerEditorUtilities.RPDevelopmentDebug("Handle member " + currField.ReflectionCache.Name + " to group " + _stackGroupTest.Peek().Attribute.Name + ". Current member index: " + index);
                 }
 
-                if (index >= allFields.Count) {
+                if (index >= allMembers.Count) {
                     break;
                 }
 

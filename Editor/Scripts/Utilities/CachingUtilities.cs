@@ -1,12 +1,13 @@
 using System;
-using System.Text;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using RealityProgrammer.OverseerInspector.Runtime;
 using RealityProgrammer.OverseerInspector.Editors.Attributes;
-using RealityProgrammer.OverseerInspector.Runtime.Miscs;
+using RealityProgrammer.OverseerInspector.Runtime.Drawers;
 using RealityProgrammer.OverseerInspector.Runtime.Validation;
 
 namespace RealityProgrammer.OverseerInspector.Editors.Utility {
@@ -34,7 +35,14 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
                 }
             }
         }
-        
+
+        internal static Func<OverseerConditionalAttribute, object, bool> GetConditionalValidationDelegate(Type type) {
+            if (_conditionalValidateMethods.TryGetValue(type, out var output)) {
+                return output;
+            }
+
+            return null;
+        }
 
         #region Qualification
         private static HashSet<Type> _inspectorEnabledTypes = new HashSet<Type>();
@@ -69,160 +77,138 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
         }
         #endregion
 
-        #region Field Caches
-        private static Dictionary<SerializedObject, List<SerializedFieldContainer>> _allFieldsWithChildren = new Dictionary<SerializedObject, List<SerializedFieldContainer>>();
-        private static Dictionary<SerializedObject, List<SerializedFieldContainer>> _allFields = new Dictionary<SerializedObject, List<SerializedFieldContainer>>();
+        private static Dictionary<SerializedObject, List<OverseerInspectingMember>> _allMembers = new Dictionary<SerializedObject, List<OverseerInspectingMember>>();
 
-        public static List<SerializedFieldContainer> GetAllCachedFields(SerializedObject serializedObject, bool enterChildren) {
-            if (enterChildren) {
-                if (_allFieldsWithChildren.TryGetValue(serializedObject, out var cache)) {
-                    return cache;
-                }
-
-                var all = serializedObject.GetAllSerializedProperties(true);
-                _allFieldsWithChildren[serializedObject] = all;
-                return all;
-            } else {
-                if (_allFields.TryGetValue(serializedObject, out var cache)) {
-                    return cache;
-                }
-
-                var all = serializedObject.GetAllSerializedProperties(false);
-                _allFields[serializedObject] = all;
-                return all;
-            }
-        }
-
-        public static IEnumerable<OverseerConditionalAttribute> GetAllValidationAttribute(FieldInfo field) {
-            var attrs = field.GetCustomAttributes();
-
-            foreach (var attr in attrs) {
-                if (attr is OverseerConditionalAttribute validation) {
-                    yield return validation;
-                }
-            }
-        }
-        #endregion
-
-        #region Method Data Caches
-        public sealed class MethodButtonCache {
-            public MethodInfo Method { get; private set; }
-            public MethodButtonAttribute MethodButton { get; private set; }
-            public ParameterInfo[] Parameters { get; private set; }
-            public bool UseParameter => Parameters.Length > 0;
-            public bool IsParameterFoldout { get; set; }
-
-            public MethodButtonHandler Handler { get; private set; }
-
-            internal MethodButtonCache(MethodInfo mtd, MethodButtonAttribute attr) {
-                Method = mtd;
-                MethodButton = attr;
-
-                Parameters = mtd.GetParameters();
+        public static ReadOnlyCollection<OverseerInspectingMember> RetrieveInspectingMembers(SerializedObject serializedObject) {
+            if (_allMembers.TryGetValue(serializedObject, out var cache)) {
+                return new ReadOnlyCollection<OverseerInspectingMember>(cache);
             }
 
-            private static readonly HashSet<Type> serializableTypes = new HashSet<Type>() {
-                typeof(Vector2), typeof(Vector3), typeof(Vector4), typeof(Quaternion),
-                typeof(Vector2Int), typeof(Vector3Int),
-                typeof(Rect), typeof(RectInt), typeof(Bounds), typeof(BoundsInt),
-                typeof(Matrix4x4),
-                typeof(Color), typeof(Color32),
-                typeof(LayerMask),
+            var all = new List<OverseerInspectingMember>();
+            var reflectionUnits = RetrieveReflectionUnits(serializedObject.targetObject.GetType());
 
-                typeof(string),
-                
-                typeof(AnimationCurve), typeof(Gradient), typeof(RectOffset), typeof(GUIStyle)
-            };
-            private static readonly Type unityObjectType = typeof(UnityEngine.Object);
-            public bool Validate() {
-                if (Method.IsGenericMethod || Method.IsGenericMethodDefinition) {
-                    Debug.LogWarning("MethodButtonAttribute cannot be used for methods with generic definition or generic parameter(s).");
+            using (SerializedProperty iterator = serializedObject.GetIterator()) {
+                List<OverseerInspectingMember> output = new List<OverseerInspectingMember>();
 
-                    return false;
-                }
+                if (iterator.NextVisible(true)) {                       // This one is required by unity for a very understandable reason
+                    while (iterator.NextVisible(false)) {       // use while instead of do..while to skip over the m_Script property
+                        if (iterator.type == "ArraySize")
+                            continue;
 
-                foreach (var parameter in Parameters) {
-                    if (!IsTypeSupported(parameter.ParameterType)) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.AppendLine("MethodButtonAttribute cannot be used for methods with invalid parameter. Informations:");
-                        sb.Append("Method name: ").AppendLine(Method.Name);
-                        sb.Append("Method declaring type: ").AppendLine(Method.DeclaringType.AssemblyQualifiedName);
-                        sb.Append("Invalid parameter: ").AppendLine(parameter.Name);
-
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            public void Initialize() {
-                switch (MethodButton.InvokeStyle) {
-                    case MethodInvocationStyle.Compiled:
-                        Debug.LogWarning("MethodButtonAttribute with invocation type of Compiled is not supported yet");
-                        break;
-
-                    case MethodInvocationStyle.ReflectionInvoke:
-                    default:
-                        Handler = new MethodButtonReflectionInvokeHandler(this);
-                        Handler.Initialize();
-                        break;
-                }
-            }
-
-            private static bool IsTypeSupported(Type type) {
-                if (serializableTypes.Contains(type))
-                    return true;
-
-                if (type.IsPrimitive)
-                    return true;
-
-                if (!type.IsAbstract && !type.IsSealed && (type.IsSubclassOf(unityObjectType) || type == unityObjectType))
-                    return true;
-
-                return false;
-            }
-        }
-
-        private static Dictionary<Type, List<MethodButtonCache>> _methodButtonCaches = new Dictionary<Type, List<MethodButtonCache>>();
-
-        public static List<MethodButtonCache> GetAllMethodButtonCache(Type type) {
-            if (type == null)
-                return null;
-
-            if (_methodButtonCaches.TryGetValue(type, out var caches)) {
-                return caches;
-            }
-
-            caches = new List<MethodButtonCache>();
-            foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy)) {
-                var attr = method.GetCustomAttribute<MethodButtonAttribute>();
-
-                if (attr != null) {
-                    var cache = new MethodButtonCache(method, attr);
-
-                    if (cache.Validate()) {
-                        cache.Initialize();
-                        caches.Add(cache);
+                        all.Add(OverseerInspectingMember.Create(iterator.Copy(), reflectionUnits[iterator.name], serializedObject.targetObject));
                     }
                 }
             }
 
-            _methodButtonCaches.Add(type, caches);
-            return caches;
-        }
-        #endregion
+            foreach (var pair in reflectionUnits) {
+                if (pair.Value.Type == ReflectionTargetType.Field) continue;
 
-        #region Conditional Caches
-        public static bool ValidateAttribute(OverseerConditionalAttribute conditional, object target) {
-            if (conditional == null)
-                return true;
-
-            if (_conditionalValidateMethods.TryGetValue(conditional.GetType(), out var method)) {
-                return method.Invoke(conditional, target);
+                all.Add(OverseerInspectingMember.Create(null, pair.Value, serializedObject.targetObject));
             }
 
-            return true;
+            _allMembers[serializedObject] = all;
+            return new ReadOnlyCollection<OverseerInspectingMember>(all);
+        }
+
+        #region Reflection Caches
+        private static readonly Dictionary<Type, Dictionary<string, ReflectionCacheUnit>> _reflectionUnitStorage = new Dictionary<Type, Dictionary<string, ReflectionCacheUnit>>();
+
+        public static ReadOnlyDictionary<string, ReflectionCacheUnit> RetrieveReflectionUnits(Type type) {
+            if (_reflectionUnitStorage.TryGetValue(type, out var dict)) {
+                return new ReadOnlyDictionary<string, ReflectionCacheUnit>(dict);
+            }
+
+            // Imagine if iterator method can have ref keyword, we won't have to resize this Dictionary when it got full
+            dict = new Dictionary<string, ReflectionCacheUnit>();
+
+            foreach (var unit in RetrieveAllFieldUnits(type)) {
+                dict.Add(unit.Name, unit);
+            }
+
+            foreach (var unit in RetrieveAllMethodUnits(type)) {
+                dict.Add(unit.Name, unit);
+            }
+
+            foreach (var unit in RetrieveAllPropertyUnits(type)) {
+                Debug.Log("Added property: " + unit.Name);
+                dict.Add(unit.Name, unit);
+            }
+
+            _reflectionUnitStorage.Add(type, dict);
+            return new ReadOnlyDictionary<string, ReflectionCacheUnit>(dict);
+        }
+
+        internal static IEnumerable<ReflectionCacheUnit> RetrieveAllFieldUnits(Type type) {
+            if (type == null) yield break;
+
+            foreach (FieldInfo field in type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)) {
+                if (field.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
+
+				yield return ReflectionCacheUnit.Create(field);
+            }
+
+            var baseType = type.BaseType;
+            while (baseType != null) {
+                foreach (FieldInfo field in baseType.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)) {
+                    if (field.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
+					
+                    if (field.IsFamily || field.IsFamily || field.IsPublic) {
+                        yield return ReflectionCacheUnit.Create(field);
+                    }
+                }
+
+                baseType = baseType.BaseType;
+            }
+        }
+
+        internal static IEnumerable<ReflectionCacheUnit> RetrieveAllMethodUnits(Type type) {
+            if (type == null) yield break;
+
+            foreach (MethodInfo method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)) {
+                if (method.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
+
+                if (method.GetCustomAttributes<BaseOverseerAttribute>().Any()) {
+                    yield return ReflectionCacheUnit.Create(method);
+                }
+            }
+
+            var baseType = type.BaseType;
+            while (baseType != null) {
+                foreach (MethodInfo method in baseType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)) {
+                    if (method.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
+
+                    if (method.GetCustomAttributes<BaseOverseerAttribute>().Any()) {
+                        yield return ReflectionCacheUnit.Create(method);
+                    }
+                }
+
+                baseType = baseType.BaseType;
+            }
+        }
+
+        internal static IEnumerable<ReflectionCacheUnit> RetrieveAllPropertyUnits(Type type) {
+            if (type == null) yield break;
+
+            foreach (PropertyInfo property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)) {
+                if (property.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
+
+                if (property.GetCustomAttributes<BaseOverseerAttribute>().Any()) {
+                    yield return ReflectionCacheUnit.Create(property);
+                }
+            }
+
+            var baseType = type.BaseType;
+            while (baseType != null) {
+                foreach (PropertyInfo property in baseType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)) {
+                    if (property.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
+
+                    if (property.GetCustomAttributes<BaseOverseerAttribute>().Any()) {
+                        yield return ReflectionCacheUnit.Create(property);
+                    }
+                }
+
+                baseType = baseType.BaseType;
+            }
         }
         #endregion
     }

@@ -1,14 +1,18 @@
 ﻿using UnityEditor;
+using UnityEngine;
+using RealityProgrammer.OverseerInspector.Editors.Utility;
 
 namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
-    public class FieldDisplayer : BasePrimaryAttributeDrawer {
+    public class FieldDisplayer : BaseFieldPrimaryDrawer {
         public override void DrawLayout() {
-            if (!AssociatedField.LastValidation)
+            if (!AssociatedMember.LastValidation)
                 return;
 
             DrawAllChildsLayout();
 
-            EditorGUILayout.PropertyField(AssociatedField.Property);
+            BeginHandleReadonly();
+            EditorGUILayout.PropertyField(AssociatedMember.Property);
+            EndHandleReadonly();
         }
     }
 }

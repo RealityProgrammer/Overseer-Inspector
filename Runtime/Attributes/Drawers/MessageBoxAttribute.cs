@@ -6,7 +6,7 @@ namespace RealityProgrammer.OverseerInspector.Runtime.Drawers {
     /// <summary>
     /// Display a message box with customizable Icon
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     public sealed class MessageBoxAttribute : AdditionDrawerAttribute {
         /// <summary>
         /// Display primary message

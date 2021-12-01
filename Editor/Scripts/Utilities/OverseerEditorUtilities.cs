@@ -11,6 +11,7 @@ using RealityProgrammer.OverseerInspector.Editors.Drawers.Group;
 
 namespace RealityProgrammer.OverseerInspector.Editors.Utility {
     public static class OverseerEditorUtilities {
+        // Compiler won't call this method unless OVERSEER_INSPECTOR_RPDEVDEBUG is active, thus no extra IL call
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [System.Diagnostics.Conditional("OVERSEER_INSPECTOR_RPDEVDEBUG")]
         internal static void RPDevelopmentDebug(string message) {
@@ -127,6 +128,7 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
 
             return false;
         }
+
         public static void DebugControlRect(Color col, float w = 0, float h = 0) {
             EditorGUI.DrawRect(EditorGUILayout.GetControlRect(GUILayout.Width(w), GUILayout.Height(h)), col);
         }
@@ -134,19 +136,19 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
         public static List<BaseDisplayable> AutoInitializeInspector(SerializedObject serializedObject) {
             List<BaseDisplayable> _displayables = new List<BaseDisplayable>();
 
-            var allFields = CachingUtilities.GetAllCachedFields(serializedObject, false);
+            var allMembers = CachingUtilities.RetrieveInspectingMembers(serializedObject);
 
-            for (int i = 0; i < allFields.Count; i++) {
-                var field = allFields[i];
+            for (int i = 0; i < allMembers.Count; i++) {
+                var member = allMembers[i];
 
-                if (field.BeginGroups != null) {
-                    GroupBuildingUtilities.BeginStackGroupTest(allFields, allFields[i], ref i, out var outputDrawer);
+                if (member.ReflectionCache.BeginGroups != null) {
+                    GroupBuildingUtilities.BeginBuildGroupDrawer(allMembers, member, ref i, out var outputDrawer);
 
                     if (outputDrawer != null) {
                         _displayables.Add(outputDrawer);
                     }
                 } else {
-                    if (TryHandlePropertyDrawer(field, out var drawer)) {
+                    if (TryHandlePrimaryDrawer(member, out var drawer)) {
                         _displayables.Add(drawer);
                     }
                 }
@@ -155,38 +157,12 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             return _displayables;
         }
 
-        internal static bool StackPopMultiple<T>(Stack<T> stack, int count) {
-            if (stack.Count <= count)
-                return false;
-
-            for (int i = 0; i < count; i++) {
-                stack.Pop();
-            }
-
-            return true;
-        }
-
-        internal static bool SearchAndIncrementIndex(List<SerializedFieldContainer> all, SerializedFieldContainer search, ref int index) {
-            if (index >= all.Count)
-                return false;
-
-            while (!ReferenceEquals(all[index], search)) {
-                index++;
-
-                if (index >= all.Count) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public static bool TryHandlePropertyDrawer(SerializedFieldContainer field, out BaseAttributeDrawer drawer) {
-            if (field.PrimaryDrawerAttribute != null) {
-                bool tryCreate = AttributeDrawerCollector.TryCreateDrawerInstance(field.PrimaryDrawerAttribute.GetType(), field.PrimaryDrawerAttribute, field, out var drawerInstance);
+        public static bool TryHandlePrimaryDrawer(OverseerInspectingMember field, out BaseAttributeDrawer drawer) {
+            if (field.ReflectionCache.PrimaryDrawerAttribute != null) {
+                bool tryCreate = AttributeDrawerCollector.TryCreateDrawerInstance(field.ReflectionCache.PrimaryDrawerAttribute.GetType(), field.ReflectionCache.PrimaryDrawerAttribute, field, out var drawerInstance);
 
                 if (tryCreate) {
-                    if (drawerInstance is BasePrimaryAttributeDrawer _cast) {
+                    if (drawerInstance is BasePrimaryDrawer _cast) {
                         foreach (var addition in HandleAdditionDrawers(field)) {
                             _cast.AddChild(addition);
                         }
@@ -210,9 +186,9 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             }
         }
 
-        public static IEnumerable<BaseAttributeDrawer> HandleAdditionDrawers(SerializedFieldContainer field) {
-            if (field.Additionals != null) {
-                foreach (var attr in field.Additionals) {
+        public static IEnumerable<BaseAttributeDrawer> HandleAdditionDrawers(OverseerInspectingMember field) {
+            if (field.ReflectionCache.Additionals != null) {
+                foreach (var attr in field.ReflectionCache.Additionals) {
                     bool tryCreate = AttributeDrawerCollector.TryCreateDrawerInstance(attr.GetType(), attr, field, out var drawerInstance);
 
                     if (tryCreate) {
@@ -225,6 +201,7 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
         }
 
         public delegate object TypeLayoutDrawerDelegate(object input, string label);
+        private static readonly Type unityObjectType = typeof(UnityEngine.Object);
         private static readonly Dictionary<Type, TypeLayoutDrawerDelegate> _typeLayoutDrawer = new Dictionary<Type, TypeLayoutDrawerDelegate>() {
             [typeof(int)] = (input, label) => {
                 return EditorGUILayout.IntField(label, (int)input);
@@ -337,8 +314,8 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             },
         };
         public static object DrawLayoutBasedOnType(object input, Type type, string label) {
-            if (input is UnityEngine.Object) {
-                return EditorGUILayout.ObjectField(label, (UnityEngine.Object)input, input.GetType(), true);
+            if (type == unityObjectType || type.IsSubclassOf(unityObjectType)) {
+                return EditorGUILayout.ObjectField(label, (UnityEngine.Object)input, type, true);
             } else {
                 if (_typeLayoutDrawer.TryGetValue(type, out var @delegate)) {
                     return @delegate.Invoke(input, label); 
@@ -346,6 +323,18 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
 
                 return null;
             }
+        }
+
+        public static bool ValidateAttribute(OverseerConditionalAttribute conditional, object target) {
+            if (conditional == null)
+                return true;
+
+            var @delegate = CachingUtilities.GetConditionalValidationDelegate(conditional.GetType());
+            if (@delegate != null) {
+                return @delegate(conditional, target);
+            }
+
+            return true;
         }
     }
 }
