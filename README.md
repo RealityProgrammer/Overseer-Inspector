@@ -15,7 +15,7 @@ Overseer Inspector are developed and run in Unity 2020.3. So only version above 
 3. Press add, sit back and enjoy hell forming</br>
 
 <h1 align="center">How to use this thing?</h1>
-<br>It's as simple as marking the Behaviour class with a special attribute in the "RealityProgrammer.OverseerInspector.Runtime" namespace:</br>
+<br>It's as simple as marking the Behaviour class with a special attribute in the "RealityProgrammer.OverseerInspector.Runtime" namespace (yes my ego is huge):</br>
 
 <p align="center">
   <img src="https://i.imgur.com/2eCmE1k.png" alt="Begin Hell">
@@ -146,6 +146,13 @@ public float regeneration;
   <h2>Tab Group</h2>
   WIP...
 </a>
+
+# Some rule need to be remembered
+## Coloring parameter
+Coloring will always be in either #RRGGBB, #RRGGBBAA, rgb(red, green, blue) or rgba(red, green, blue, alpha). In rgb or rgba representation, numerical values are treated as integer by default (0-255), and treated as floating point number if there is a decimal separator "." (0-1).
+
+## Inheritance
+Inheritance might not work very well for now (especially parent's methods, properties). But it's currently work in progress.
 
 # Acknowledgement
 This is one person project, everything might not be performance, nor be bug free, but suggestion and bug report are highly welcomed.
