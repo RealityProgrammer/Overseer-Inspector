@@ -174,6 +174,7 @@ TODO table:
 |Context|Status|Notes|
 |:--:|:-----:|:---:|
 |Nested group|✔️||
-|Method context attribute|✔️||
+|Method context attributes|✔️||
+|Property context attributes|-|Supported, but serve no functionality yet|
 |Property set call|✔️|\[FieldAssignCallbackAttribute\]|
 |Regret everything|✔️||
