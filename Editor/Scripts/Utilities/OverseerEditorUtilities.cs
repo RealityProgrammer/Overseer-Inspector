@@ -157,13 +157,11 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             return _displayables;
         }
 
-        public static bool TryHandlePrimaryDrawer(OverseerInspectingMember field, out BaseAttributeDrawer drawer) {
-            if (field.ReflectionCache.PrimaryDrawerAttribute != null) {
-                bool tryCreate = AttributeDrawerCollector.TryCreateDrawerInstance(field.ReflectionCache.PrimaryDrawerAttribute.GetType(), field.ReflectionCache.PrimaryDrawerAttribute, field, out var drawerInstance);
-
-                if (tryCreate) {
+        public static bool TryHandlePrimaryDrawer(OverseerInspectingMember member, out BaseAttributeDrawer drawer) {
+            if (member.ReflectionCache.PrimaryDrawerAttribute != null) {
+                if (AttributeDrawerCollector.TryCreateDrawerInstance(member.ReflectionCache.PrimaryDrawerAttribute.GetType(), member.ReflectionCache.PrimaryDrawerAttribute, member, out var drawerInstance)) {
                     if (drawerInstance is BasePrimaryDrawer _cast) {
-                        foreach (var addition in HandleAdditionDrawers(field)) {
+                        foreach (var addition in HandleAdditionDrawers(member)) {
                             _cast.AddChild(addition);
                         }
 
@@ -171,19 +169,20 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
                         return true;
                     }
                 }
-
-                drawer = null;
-                return false;
             } else {
-                AttributeDrawerCollector.TryCreateDrawerInstance(null, null, field, out var drawerInstance);
+                if (member.ReflectionCache.Type == ReflectionTargetType.Field) {
+                    if (AttributeDrawerCollector.TryCreateDrawerInstance(null, null, member, out drawer)) {
+                        foreach (var addition in HandleAdditionDrawers(member)) {
+                            drawer.AddChild(addition);
+                        }
 
-                drawer = drawerInstance;
-                foreach (var addition in HandleAdditionDrawers(field)) {
-                    drawer.AddChild(addition);
+                        return true;
+                    }
                 }
-
-                return true;
             }
+
+            drawer = null;
+            return false;
         }
 
         public static IEnumerable<BaseAttributeDrawer> HandleAdditionDrawers(OverseerInspectingMember field) {
@@ -336,5 +335,54 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
 
             return true;
         }
+
+#if UNITY_2022_1_OR_NEWER
+        // The source binding of SerializedProperty has the property of boxedValue, so we will use it.
+        // Prevent version breaking.
+        [Obsolete("Use SerializedProperty.boxedValue which added in 2022 version")]
+        public static object GetBoxedValue(this SerializedProperty property) {
+            return property.boxedValue;
+        }
+#else
+        private static Func<SerializedProperty, Gradient> _gradientValueGetter;
+
+        public static object GetBoxedValue(this SerializedProperty property) {
+            if (property == null) return null;
+
+            switch (property.propertyType) {
+                case SerializedPropertyType.Integer: return property.intValue;
+                case SerializedPropertyType.Boolean: return property.boolValue;
+                case SerializedPropertyType.Float: return property.floatValue;
+                case SerializedPropertyType.String: return property.stringValue;
+                case SerializedPropertyType.Color: return property.colorValue;
+                case SerializedPropertyType.ObjectReference: return property.objectReferenceValue;
+                case SerializedPropertyType.LayerMask: return property.intValue;
+                case SerializedPropertyType.Enum: return property.intValue;
+                case SerializedPropertyType.Vector2: return property.vector2Value;
+                case SerializedPropertyType.Vector3: return property.vector3Value;
+                case SerializedPropertyType.Vector4: return property.vector4Value;
+                case SerializedPropertyType.Rect: return property.rectValue;
+                case SerializedPropertyType.ArraySize: return property.arraySize;
+                case SerializedPropertyType.Character: return property.stringValue[0];
+                case SerializedPropertyType.AnimationCurve: return property.animationCurveValue;
+                case SerializedPropertyType.Bounds: return property.boundsValue;
+                case SerializedPropertyType.Gradient:
+                    // Why...?
+                    if (_gradientValueGetter == null) {
+                        _gradientValueGetter = (Func<SerializedProperty, Gradient>)typeof(SerializedProperty).GetProperty("gradientValue", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetProperty).GetGetMethod().CreateDelegate(typeof(Func<SerializedProperty, Gradient>));
+                    }
+                    return _gradientValueGetter.Invoke(property);
+                case SerializedPropertyType.Quaternion: return property.quaternionValue;
+                case SerializedPropertyType.FixedBufferSize: return property.fixedBufferSize;
+                case SerializedPropertyType.Vector2Int: return property.vector2IntValue;
+                case SerializedPropertyType.Vector3Int: return property.vector3IntValue;
+                case SerializedPropertyType.RectInt: return property.rectIntValue;
+                case SerializedPropertyType.BoundsInt: return property.boundsIntValue;
+                default:
+                    Debug.LogWarning("Unsupported SerializedPropertyType to get value from: " + property.propertyType.ToString());
+                    return null;
+            }
+        }
     }
+#endif
 }

@@ -130,7 +130,6 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             }
 
             foreach (var unit in RetrieveAllPropertyUnits(type)) {
-                Debug.Log("Added property: " + unit.Name);
                 dict.Add(unit.Name, unit);
             }
 
@@ -139,9 +138,10 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
         }
 
         internal static IEnumerable<ReflectionCacheUnit> RetrieveAllFieldUnits(Type type) {
-            if (type == null) yield break;
+            if (type == null)
+                yield break;
 
-            foreach (FieldInfo field in type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)) {
+            foreach (FieldInfo field in type.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)) {
                 if (field.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
 
 				yield return ReflectionCacheUnit.Create(field);
@@ -149,12 +149,16 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
 
             var baseType = type.BaseType;
             while (baseType != null) {
-                foreach (FieldInfo field in baseType.GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)) {
+                foreach (FieldInfo field in baseType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly)) {
                     if (field.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
-					
-                    if (field.IsFamily || field.IsFamily || field.IsPublic) {
-                        yield return ReflectionCacheUnit.Create(field);
+
+                    if (field.IsPrivate) {
+                        if (field.GetCustomAttribute<SerializeField>() == null) {
+                            continue;
+                        }
                     }
+
+                    yield return ReflectionCacheUnit.Create(field);
                 }
 
                 baseType = baseType.BaseType;
@@ -164,17 +168,17 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
         internal static IEnumerable<ReflectionCacheUnit> RetrieveAllMethodUnits(Type type) {
             if (type == null) yield break;
 
-            foreach (MethodInfo method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)) {
+            foreach (MethodInfo method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)) {
                 if (method.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
 
-                if (method.GetCustomAttributes<BaseOverseerAttribute>().Any()) {
+                //if (method.GetCustomAttributes<BaseOverseerAttribute>().Any()) {
                     yield return ReflectionCacheUnit.Create(method);
-                }
+                //}
             }
 
             var baseType = type.BaseType;
             while (baseType != null) {
-                foreach (MethodInfo method in baseType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)) {
+                foreach (MethodInfo method in baseType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)) {
                     if (method.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
 
                     if (method.GetCustomAttributes<BaseOverseerAttribute>().Any()) {

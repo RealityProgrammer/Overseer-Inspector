@@ -11,7 +11,9 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
             DrawAllChildsLayout();
 
             BeginHandleReadonly();
+            BeginHandleFieldAssignCallback();
             EditorGUILayout.PropertyField(AssociatedMember.Property);
+            EndHandleFieldAssignCallback();
             EndHandleReadonly();
         }
     }

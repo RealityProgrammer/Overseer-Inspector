@@ -24,6 +24,7 @@ namespace RealityProgrammer.OverseerInspector.Editors {
 
         public List<OverseerConditionalAttribute> Conditions { get; private set; }
 
+        public List<FieldAssignCallbackAttribute> FieldAssignCallback { get; private set; }
         public ReadonlyFieldAttribute ReadonlyField { get; private set; }
 
         private void InitializeAttributes(MemberInfo member) {
@@ -63,9 +64,16 @@ namespace RealityProgrammer.OverseerInspector.Editors {
                         ReadonlyField = @readonly;
                         break;
 
-                    default:
-                        Debug.LogWarning("Unhandled attribute of type " + attr.GetType().AssemblyQualifiedName + ".");
+                    case FieldAssignCallbackAttribute fac:
+                        if (FieldAssignCallback == null)
+                            FieldAssignCallback = new List<FieldAssignCallbackAttribute>();
+
+                        FieldAssignCallback.Add(fac);
                         break;
+
+                    //default:
+                    //    Debug.LogWarning("Unhandled attribute of type " + attr.GetType().AssemblyQualifiedName + ".");
+                    //    break;
                 }
             }
         }

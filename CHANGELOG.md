@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [1.2.0] - 2021-12-02
+### Fixed
+- Inheritance reflection cache
+
+### Added
+- OverseerIncludeAttribute, FieldAssignCallbackAttribute
+
 ## [1.1.0] - 2021-12-01
 ### Changed
 - Reflection-able properties have their own cache section. Thus reduce initialization time of Inspector.
