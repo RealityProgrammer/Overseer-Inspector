@@ -7,24 +7,22 @@ using RealityProgrammer.OverseerInspector.Editors.Utility;
 
 namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
     public abstract class BaseFieldPrimaryDrawer : BasePrimaryDrawer {
-        public void BeginHandleReadonly() {
+        public bool BeginHandleReadonly() {
             var attr = AssociatedMember.ReflectionCache.ReadonlyField;
 
             if (attr != null) {
-                switch (attr.ExecutionMode) {
-                    case ExecutionMode.Always:
-                        EditorGUI.BeginDisabledGroup(true);
-                        break;
+                if (Application.isPlaying) {
+                    EditorGUI.BeginDisabledGroup(!attr.PMEditable);
 
-                    case ExecutionMode.EditMode:
-                        EditorGUI.BeginDisabledGroup(!Application.isPlaying);
-                        break;
+                    return attr.PMVisibility;
+                } else {
+                    EditorGUI.BeginDisabledGroup(!attr.EMEditable);
 
-                    case ExecutionMode.PlayMode:
-                        EditorGUI.BeginDisabledGroup(Application.isPlaying);
-                        break;
+                    return attr.EMVisibility;
                 }
             }
+
+            return true;
         }
 
         public void EndHandleReadonly() {
@@ -41,6 +39,8 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
 
         public void EndHandleFieldAssignCallback() {
             if (EditorGUI.EndChangeCheck()) {
+                if (AssociatedMember.ReflectionCache.FieldAssignCallback == null) return;
+
                 var target = AssociatedMember.Target;
                 var targetType = target.GetType();
 

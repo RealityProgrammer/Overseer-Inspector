@@ -113,9 +113,9 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
         #region Reflection Caches
         private static readonly Dictionary<Type, Dictionary<string, ReflectionCacheUnit>> _reflectionUnitStorage = new Dictionary<Type, Dictionary<string, ReflectionCacheUnit>>();
 
-        public static ReadOnlyDictionary<string, ReflectionCacheUnit> RetrieveReflectionUnits(Type type) {
+        public static Dictionary<string, ReflectionCacheUnit> RetrieveReflectionUnits(Type type) {
             if (_reflectionUnitStorage.TryGetValue(type, out var dict)) {
-                return new ReadOnlyDictionary<string, ReflectionCacheUnit>(dict);
+                return dict;
             }
 
             // Imagine if iterator method can have ref keyword, we won't have to resize this Dictionary when it got full
@@ -134,7 +134,7 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             }
 
             _reflectionUnitStorage.Add(type, dict);
-            return new ReadOnlyDictionary<string, ReflectionCacheUnit>(dict);
+            return dict;
         }
 
         internal static IEnumerable<ReflectionCacheUnit> RetrieveAllFieldUnits(Type type) {
@@ -170,16 +170,18 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
 
             foreach (MethodInfo method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)) {
                 if (method.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
+                if (method.GetParameters().Length != 0) continue;
 
-                //if (method.GetCustomAttributes<BaseOverseerAttribute>().Any()) {
+                if (method.GetCustomAttributes<BaseOverseerAttribute>().Any()) {
                     yield return ReflectionCacheUnit.Create(method);
-                //}
+                }
             }
 
             var baseType = type.BaseType;
             while (baseType != null) {
                 foreach (MethodInfo method in baseType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)) {
                     if (method.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
+                    if (method.GetParameters().Length != 0) continue;
 
                     if (method.GetCustomAttributes<BaseOverseerAttribute>().Any()) {
                         yield return ReflectionCacheUnit.Create(method);

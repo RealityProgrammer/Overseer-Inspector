@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace RealityProgrammer.OverseerInspector.Runtime.Miscs {
+    /// <summary>
+    /// Determine whether the field could be edited during executing mode, or handling
+    /// field's disability will be shown.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
     public sealed class ReadonlyFieldAttribute : BaseOverseerAttribute {
-        public ExecutionMode ExecutionMode { get; set; } = ExecutionMode.Always;
-    }
+        public bool PMVisibility { get; set; } = true;
+        public bool PMEditable { get; set; } = true;
 
-    public enum ExecutionMode {
-        PlayMode = 1,
-        EditMode = 2,
-
-        Always = -1,
+        public bool EMVisibility { get; set; }
+        public bool EMEditable { get; set; }
     }
 }
