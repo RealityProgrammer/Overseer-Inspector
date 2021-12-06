@@ -177,4 +177,5 @@ TODO table:
 |Method context attributes|✔️||
 |Property context attributes|-|Supported, but serve no functionality yet|
 |Property set call|✔️|\[FieldAssignCallbackAttribute\]|
+|Light mode support|❌|haha no|
 |Regret everything|✔️||
