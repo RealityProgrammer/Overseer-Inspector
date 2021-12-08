@@ -8,8 +8,6 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers.Group {
     public abstract class BaseGroupAttributeDrawer : BaseAttributeDrawer {
         public int NestingLevel { get; private set; }
 
-        public virtual void EditorInitialize() { }
-
         public string GroupName => ((OverseerBeginGroupAttribute)AssociatedAttribute).Name;
     }
 }

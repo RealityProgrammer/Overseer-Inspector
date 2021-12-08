@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 using UnityEngine;
 
 namespace RealityProgrammer.OverseerInspector.Runtime.Validation {
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
     public sealed class ShowIfAttribute : OverseerConditionalAttribute {
         public string Argument { get; private set; }
 

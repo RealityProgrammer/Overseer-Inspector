@@ -71,10 +71,8 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
 
         public MethodButtonDrawer() {
             foldoutAnim = new AnimBool(false);
-            //foldoutAnim.speed = 0.4f;
 
             foldoutAnim.valueChanged.AddListener(() => {
-                //Debug.Log(foldoutAnim.faded + " -> " + foldoutAnim.target);
                 OverseerInspector.CurrentInspector.RequestConstantRepaint();
             });
         }
@@ -126,12 +124,12 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
         }
 
         public override void DrawLayout() {
+            if (!AssociatedMember.LastValidation) return;
             if (!validation) return;
 
             DrawAllChildsLayout();
 
             foldoutAnim.target = EditorGUILayout.Foldout(foldoutAnim.target, GetMethodDisplayName());
-
 
             if (foldoutAnim.faded > 0.001f) {
                 EditorGUILayout.BeginVertical("HelpBox");

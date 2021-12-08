@@ -27,7 +27,11 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
 
                 foreach (var attr in attrs) {
                     if (attr.AttributeType.IsSubclassOf(baseDrawerType)) {
-                        _drawerTypes.Add(attr.AttributeType, drawer);
+                        if (_drawerTypes.TryGetValue(attr.AttributeType, out var exist)) {
+                            Debug.LogWarning("Detected multiple drawer classes point to the same attribute. Exist: " + exist.AssemblyQualifiedName + ", Adding: " + attr.AttributeType.AssemblyQualifiedName);
+                        } else {
+                            _drawerTypes.Add(attr.AttributeType, drawer);
+                        }
                     }
                 }
             }

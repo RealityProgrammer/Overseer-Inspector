@@ -1,6 +1,6 @@
 {
   "name": "com.realityprogrammer.overseerinspector",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "displayName": "Overseer Inspector",
   "description": "A custom made package to extend Unity's Inspector experience",
   "unity": "2020.3",

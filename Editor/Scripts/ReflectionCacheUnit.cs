@@ -70,10 +70,6 @@ namespace RealityProgrammer.OverseerInspector.Editors {
 
                         FieldAssignCallback.Add(fac);
                         break;
-
-                    //default:
-                    //    Debug.LogWarning("Unhandled attribute of type " + attr.GetType().AssemblyQualifiedName + ".");
-                    //    break;
                 }
             }
         }
