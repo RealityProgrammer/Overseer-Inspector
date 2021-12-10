@@ -74,6 +74,8 @@ public float display3;
 ```
 ![Validator 2](https://i.imgur.com/OkuMfQI.png)
 
+(Stop complaining, I'm too lazy to do string expression)
+
 <a id="addition">
   <h2>Addition</h2>
   Additions is a collection of attributes that provide extra displayable element to primary drawer. One field can have multiple additions. Belong to
