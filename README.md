@@ -74,7 +74,18 @@ public float display3;
 ```
 ![Validator 2](https://i.imgur.com/OkuMfQI.png)
 
-(Stop complaining, I'm too lazy to do string expression)
+~~(Stop complaining, I'm too lazy to do string expression)~~
+Good (and bad at the same time) new, Aurora Interpreter are added to the package, and they can do simple expression which no one probably need.
+Tired of creating methods for just a simple check? Now you can do dynamic
+```cs
+[Range(0, 1)] public float value1;
+[Range(0, 1)] public float value2;
+
+[ShowIf("value1 >= 0.5 && value2 >= 0.5")]
+public float target;
+```
+
+and it will update correctly. (I'm too lazy to upload images)
 
 <a id="addition">
   <h2>Addition</h2>
@@ -169,6 +180,9 @@ By default, field will be cached as much as possible based on Attribute, Seriali
 
 ## Inheritance
 Inheritance might not work very well for now (especially parent's methods, properties). But it's currently work in progress.
+
+## Aurora Interpreter
+Made in... 2-3 days (with the code got from RPUnity Toolkit, check that out too), it might not be very performance or works correctly. Exception (and crash) might happen at certain degree, and initial overhead is drastically increased (probably because of the use of dynamic object). Report any error if something went wrong"
 
 # Acknowledgement
 This is one person project, everything might not be performance, nor be bug free, but suggestion and bug report are highly welcomed.
