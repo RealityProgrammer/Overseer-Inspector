@@ -196,4 +196,5 @@ TODO table:
 |Property context attributes|-|Supported, but serve no functionality yet|
 |Property set call|✔️|\[FieldAssignCallbackAttribute\]|
 |Light mode support|❌|haha no|
+|Code emit support for Aurora|-|Maybe|
 |Regret everything|✔️||
