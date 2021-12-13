@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEditor;
 using RealityProgrammer.OverseerInspector.Runtime.Validation;
 using RealityProgrammer.OverseerInspector.Editors.Drawers;
+using RealityProgrammer.OverseerInspector.Editors.Validators;
 using RealityProgrammer.OverseerInspector.Editors.Drawers.Group;
 
 namespace RealityProgrammer.OverseerInspector.Editors.Utility {
@@ -328,9 +329,10 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             if (conditional == null)
                 return true;
 
-            var @delegate = CachingUtilities.GetConditionalValidationDelegate(conditional.GetType());
-            if (@delegate != null) {
-                return @delegate(conditional, target);
+            var validator = CachingUtilities.GetConditionalValidatorInstance(conditional.GetType());
+
+            if (validator != null) {
+                return validator.Validate(new ValidateContext(conditional, target));
             }
 
             return true;

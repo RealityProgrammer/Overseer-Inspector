@@ -1,11 +1,11 @@
-using System;
-using System.Reflection;
-using System.Linq;
 using System.Collections.Generic;
+using System.IO;
+using System;
 using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEditor;
 using RealityProgrammer.OverseerInspector.Editors.Utility;
+using RealityProgrammer.OverseerInspector.Editors.Miscs.Aurora;
 
 namespace RealityProgrammer.OverseerInspector.Editors {
     [CustomEditor(typeof(UnityEngine.Object), true)]
@@ -31,10 +31,6 @@ namespace RealityProgrammer.OverseerInspector.Editors {
 
                 allMembers = CachingUtilities.RetrieveInspectingMembers(serializedObject);
                 _displayables = OverseerEditorUtilities.AutoInitializeInspector(serializedObject);
-
-                foreach (var field in allMembers) {
-                    field.ForceCheckValidation();
-                }
             }
         }
 
@@ -55,6 +51,10 @@ namespace RealityProgrammer.OverseerInspector.Editors {
                 serializedObject.Update();
                 EditorGUI.BeginChangeCheck();
 
+                foreach (var field in allMembers) {
+                    field.ForceCheckValidation();
+                }
+
                 foreach (var displayable in _displayables) {
                     if (displayable == null) {
                         Debug.LogWarning("Something went wrong. Overseer Inspector detected a null displayable element.");
@@ -67,10 +67,6 @@ namespace RealityProgrammer.OverseerInspector.Editors {
 
                 if (EditorGUI.EndChangeCheck()) {
                     serializedObject.ApplyModifiedProperties();
-
-                    foreach (var field in allMembers) {
-                        field.ForceCheckValidation();
-                    }
                 }
             } else {
                 base.OnInspectorGUI();

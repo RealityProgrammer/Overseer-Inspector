@@ -117,10 +117,14 @@ namespace RealityProgrammer.OverseerInspector.Editors {
         }
 
         public bool CheckCondition(object target) {
-            if (target == null || Conditions == null) return true;
+            if (target == null || Conditions == null) {
+                return true;
+            }
 
             foreach (var condition in Conditions) {
-                if (!OverseerEditorUtilities.ValidateAttribute(condition, target)) {
+                var ret = OverseerEditorUtilities.ValidateAttribute(condition, target);
+
+                if (!ret) {
                     return false;
                 }
             }

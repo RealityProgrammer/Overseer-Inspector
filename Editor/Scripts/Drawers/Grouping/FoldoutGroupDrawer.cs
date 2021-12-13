@@ -78,6 +78,9 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers.Group {
             EditorStyles.label.fontStyle = old;
 
             var lastRect = GUILayoutUtility.GetLastRect();
+            lastRect = EditorGUI.IndentedRect(lastRect);
+            lastRect.x -= 14;
+
             var foldoutRect = new Rect(lastRect.x + 2, lastRect.y, lastRect.width - 2, lastRect.height);
 
             switch (Event.current.GetTypeForControl(id)) {

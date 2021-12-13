@@ -7,38 +7,43 @@ using UnityEngine;
 using UnityEditor;
 using RealityProgrammer.OverseerInspector.Runtime;
 using RealityProgrammer.OverseerInspector.Editors.Attributes;
+using RealityProgrammer.OverseerInspector.Editors.Validators;
 using RealityProgrammer.OverseerInspector.Runtime.Drawers;
 using RealityProgrammer.OverseerInspector.Runtime.Validation;
 
 namespace RealityProgrammer.OverseerInspector.Editors.Utility {
     public static class CachingUtilities {
         public static Type UnityEngineObjectType = typeof(UnityEngine.Object);
+        public static Type ConditionalValidateRetType = typeof(OperationReturnContext);
 
         // Collection of conditional validate type with it's correspond validate method
-        private static readonly Dictionary<Type, Func<OverseerConditionalAttribute, object, bool>> _conditionalValidateMethods;
+        private static readonly Dictionary<Type, Type> _conditionalValidators;
         static CachingUtilities() {
-            _conditionalValidateMethods = new Dictionary<Type, Func<OverseerConditionalAttribute, object, bool>>();
+            _conditionalValidators = new Dictionary<Type, Type>();
 
-            var validationMethods = TypeCache.GetMethodsWithAttribute<ConditionalConnectAttribute>();
+            var validators = TypeCache.GetTypesWithAttribute<ConditionalConnectAttribute>();
 
-            foreach (var method in validationMethods) {
-                if (method.IsStatic && method.ReturnType == typeof(bool)) {
-                    var parameters = method.GetParameters();
+            var baseCondVT = typeof(BaseConditionalValidator);
+            foreach (var validator in validators) {
+                if (validator.IsSubclassOf(baseCondVT)) {
+                    var target = validator.GetCustomAttribute<ConditionalConnectAttribute>().ConditionalType;
 
-                    if (parameters.Length == 2) {
-                        if (parameters[0].ParameterType == typeof(OverseerConditionalAttribute) && parameters[1].ParameterType == typeof(object)) {
-                            var attr = method.GetCustomAttribute<ConditionalConnectAttribute>();
-
-                            _conditionalValidateMethods[attr.ConditionalType] = (Func<OverseerConditionalAttribute, object, bool>)method.CreateDelegate(typeof(Func<OverseerConditionalAttribute, object, bool>));
-                        }
+                    if (!_conditionalValidators.ContainsKey(target)) {
+                        _conditionalValidators[target] = validator;
+                    } else {
+                        Debug.LogWarning("Multiple validator type for conditional attribute of type '" + target.FullName + "'");
                     }
+                } else {
+                    Debug.LogWarning("Conditional Validator of type '" + validator.FullName + "' must inherit '" + baseCondVT.FullName + "'");
                 }
             }
         }
 
-        internal static Func<OverseerConditionalAttribute, object, bool> GetConditionalValidationDelegate(Type type) {
-            if (_conditionalValidateMethods.TryGetValue(type, out var output)) {
-                return output;
+        public static BaseConditionalValidator GetConditionalValidatorInstance(Type conditionalType) {
+            if (_conditionalValidators.TryGetValue(conditionalType, out var output)) {
+                var instance = (BaseConditionalValidator)Activator.CreateInstance(output);
+
+                return instance;
             }
 
             return null;

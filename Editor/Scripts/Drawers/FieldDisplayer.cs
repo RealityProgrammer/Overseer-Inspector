@@ -5,8 +5,11 @@ using RealityProgrammer.OverseerInspector.Editors.Utility;
 namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
     public class FieldDisplayer : BaseFieldPrimaryDrawer {
         public override void DrawLayout() {
-            if (!AssociatedMember.LastValidation)
+            if (!AssociatedMember.ConditionalCheck) {
+                //EditorGUILayout.HelpBox(AssociatedMember.ConditionalCheckReturn.Message, MessageType.Error, true);
+
                 return;
+            }
 
             DrawAllChildsLayout();
 

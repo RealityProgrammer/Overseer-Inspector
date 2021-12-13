@@ -21,7 +21,7 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
         }
 
         public override void DrawLayout() {
-            if (!AssociatedMember.LastValidation)
+            if (!AssociatedMember.ConditionalCheck)
                 return;
 
             DrawAllChildsLayout();
@@ -30,22 +30,21 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
                 underlying = (MessageBoxAttribute)AssociatedAttribute;
             }
 
-            switch (underlying.IconArgument) {
-                case InfoIconArgument:
-                case null:
-                case "":
+            switch (underlying.IconType) {
+                case MessageBoxIconType.Info:
+                default:
                     EditorGUILayout.HelpBox(underlying.Message, MessageType.Info, true);
                     break;
 
-                case WarningIconArgument:
+                case MessageBoxIconType.Warning:
                     EditorGUILayout.HelpBox(underlying.Message, MessageType.Warning, true);
                     break;
 
-                case ErrorIconArgument:
+                case MessageBoxIconType.Error:
                     EditorGUILayout.HelpBox(underlying.Message, MessageType.Error, true);
                     break;
 
-                default:
+                case MessageBoxIconType.Custom:
                     EditorGUILayout.LabelField(new GUIContent(underlying.Message, RetrieveCacheTexture(underlying.IconArgument)), EditorStyles.helpBox);
                     break;
             }

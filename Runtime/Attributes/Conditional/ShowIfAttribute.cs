@@ -7,10 +7,10 @@ using UnityEngine;
 namespace RealityProgrammer.OverseerInspector.Runtime.Validation {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = true)]
     public sealed class ShowIfAttribute : OverseerConditionalAttribute {
-        public string Argument { get; private set; }
+        public string Program { get; private set; }
 
         public ShowIfAttribute(string argument) {
-            Argument = argument;
+            Program = argument;
         }
     }
 }

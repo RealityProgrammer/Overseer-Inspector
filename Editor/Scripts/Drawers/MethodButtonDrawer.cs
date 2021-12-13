@@ -124,7 +124,7 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
         }
 
         public override void DrawLayout() {
-            if (!AssociatedMember.LastValidation) return;
+            if (!AssociatedMember.ConditionalCheck) return;
             if (!validation) return;
 
             DrawAllChildsLayout();

@@ -41,6 +41,9 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
             if (EditorGUI.EndChangeCheck()) {
                 if (AssociatedMember.ReflectionCache.FieldAssignCallback == null) return;
 
+                // Required for Updating properties
+                AssociatedMember.Property.serializedObject.ApplyModifiedProperties();
+
                 var target = AssociatedMember.Target;
                 var targetType = target.GetType();
 

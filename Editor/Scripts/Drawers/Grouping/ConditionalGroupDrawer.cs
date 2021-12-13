@@ -1,10 +1,12 @@
 using System.Collections;
+using System;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 using RealityProgrammer.OverseerInspector.Runtime.Drawers.Group;
 using RealityProgrammer.OverseerInspector.Editors.Attributes;
 using RealityProgrammer.OverseerInspector.Editors.Utility;
+using RealityProgrammer.OverseerInspector.Editors.Miscs.Aurora;
 
 namespace RealityProgrammer.OverseerInspector.Editors.Drawers.Group {
     [BindDrawerTo(typeof(BeginConditionalGroupAttribute))]
@@ -17,34 +19,37 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers.Group {
 
         bool inverted;
 
+        AuroraScanner scanner;
+        AuroraLexer lexer;
+        AuroraInterpreter interpreter;
+        BaseExpression outputExpression;
+
+        string errorMsg;
+
         public override void Initialize() {
             attr = (BeginConditionalGroupAttribute)AssociatedAttribute;
 
-            inverted = attr.Argument.StartsWith("!");
-
-            ReflectionUtilities.ObtainMemberInfoFromArgument(AssociatedObject.targetObject.GetType(), inverted ? attr.Argument.Substring(1, attr.Argument.Length - 1) : attr.Argument, out _field, out _property, out _method);
-
-            if (_field != null && _field.FieldType != ReflectionUtilities.BooleanType) {
-                _field = null;
-            } else if (_property != null && (!_property.CanRead || _property.PropertyType != ReflectionUtilities.BooleanType)) {
-                _property = null;
-            } else if (_method != null && _method.ReturnType != ReflectionUtilities.BooleanType) {
-                _method = null;
+            try {
+                AuroraUtilities.InitializeEverything(attr.Argument, AssociatedObject.targetObject, out scanner, out lexer, out outputExpression, out interpreter);
+            } catch (Exception e) {
+                errorMsg = e.GetType().Name + " were thrown: " + e.Message;
             }
         }
 
         public override void DrawLayout() {
-            bool validate = true;
+            if (string.IsNullOrEmpty(errorMsg)) {
+                try {
+                    var result = interpreter.InterpretExpression(outputExpression);
 
-            if (_field != null) {
-                validate = (bool)_field.GetValue(AssociatedObject.targetObject) ^ inverted;
-            } else if (_property != null) {
-                validate = (bool)_property.GetValue(AssociatedObject.targetObject) ^ inverted;
-            } else if (_method != null) {
-                validate = (bool)_method.Invoke(AssociatedObject.targetObject, null) ^ inverted;
-            }
-
-            if (validate) {
+                    if (result is bool b) {
+                        if (b) DrawAllChildsLayout();
+                    } else {
+                        errorMsg = "Output result is not a boolean";
+                    }
+                } catch (Exception e) {
+                    errorMsg = e.GetType().Name + " were thrown: " + e.Message;
+                }
+            } else {
                 DrawAllChildsLayout();
             }
         }
