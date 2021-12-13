@@ -182,7 +182,9 @@ By default, field will be cached as much as possible based on Attribute, Seriali
 Inheritance might not work very well for now (especially parent's methods, properties). But it's currently work in progress.
 
 ## Aurora Interpreter
-Made in... 2-3 days (with the code got from RPUnity Toolkit, check that out too), it might not be very performance or works correctly. Exception (and crash) might happen at certain degree, and initial overhead is drastically increased (probably because of the use of dynamic object). Report any error if something went wrong"
+Made in... 2-3 days (with the code got from RPUnity Toolkit, check that out too), it might not be very performance or works correctly. Exception (and crash) might happen at certain degree, and initial overhead is drastically increased (probably because of the use of dynamic object). Report any error if something went wrong.  
+
+Also, complicated member access like namespace, classes are not added yet and probably never will. Enum, however, are comparable with integer numeric type (Long)
 
 # Acknowledgement
 This is one person project, everything might not be performance, nor be bug free, but suggestion and bug report are highly welcomed.
