@@ -205,4 +205,5 @@ TODO table:
 |Property set call|✔️|\[FieldAssignCallbackAttribute\]|
 |Light mode support|❌|haha no|
 |Code emit support for Aurora|-|Maybe|
+|Child attribute support|-|WIP|
 |Regret everything|✔️||
