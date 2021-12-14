@@ -186,6 +186,14 @@ Made in... 2-3 days (with the code got from RPUnity Toolkit, check that out too)
 
 Also, complicated member access like namespace, classes are not added yet and probably never will. Enum, however, are comparable with integer numeric type (Long)
 
+### Pro
+1. It's a small interpreter, so it's pretty fast
+2. Can do most of C# syntax
+
+### Con
+1. No constructor, only primitive (int, long, unsigned, string, boolean, null)
+2. Initial overhead
+
 # Acknowledgement
 This is one person project, everything might not be performance, nor be bug free, but suggestion and bug report are highly welcomed.
 TODO table:
