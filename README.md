@@ -132,11 +132,12 @@ public float f4;
 
 <a id="primary">
   <h2>Primary Drawers</h2>
-  Primary is a master drawer for field that handle everything, from determine layout progress, to handling the Additions. Same namespace to the Addtions.
 </a>
+  Primary is a master drawer for field that handle everything, from determine layout progress, to handling the Additions. Same namespace to the Addtions.
 
 <a id="group">
   <h2>Grouping</h2>
+</a>
   Group is a container that contains all the fields inside it in a form of BeginGroup/EndGroup. Belong to
   
 ```cs
