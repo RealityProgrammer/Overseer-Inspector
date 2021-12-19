@@ -111,6 +111,7 @@ public Transform warning;
 public Transform error;
 ```
 ![Message Box](https://i.imgur.com/7YL9JNz.png)
+
   <h3>Seperator</h3>
   Seperate between fields with colored lines
   
@@ -127,6 +128,7 @@ public float f3;
 public float f4;
 ```
 ![Seperator](https://i.imgur.com/MWn0Y66.png)
+
   <h3>Miscs</h3>
   OverseerSpace: Works like Unity's default Space, but compatible with Overseer Inspector
 
@@ -160,7 +162,6 @@ public float regeneration;
   
   <h2>Tab Group</h2>
   WIP...
-</a>
 
 <a id="miscs">
   <h2>Miscellaneous</h2>
