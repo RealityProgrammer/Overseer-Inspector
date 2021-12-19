@@ -89,6 +89,7 @@ and it will update correctly. (I'm too lazy to upload images)
 
 <a id="addition">
   <h2>Addition</h2>
+</a>
   Additions is a collection of attributes that provide extra displayable element to primary drawer. One field can have multiple additions. Belong to
   
 ```cs
@@ -128,7 +129,6 @@ public float f4;
 ![Seperator](https://i.imgur.com/MWn0Y66.png)
   <h3>Miscs</h3>
   OverseerSpace: Works like Unity's default Space, but compatible with Overseer Inspector
-</a>
 
 <a id="primary">
   <h2>Primary Drawers</h2>
