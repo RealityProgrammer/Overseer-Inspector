@@ -29,7 +29,7 @@ And there you go, you can bind Attributes for your fields/class members now. And
   <a href="#addition">Additions</a> - 
   <a href="#primary">Primary</a> - 
   <a href="#group">Grouping</a> -
-  <a href="#miscs">Miscs</a>
+  <a href="#miscellaneous">Miscellaneous</a>
 </p>
 
 <a id="conditional">
@@ -163,7 +163,7 @@ public float regeneration;
   <h2>Tab Group</h2>
   WIP...
 
-<a id="miscs">
+<a id="miscellaneous">
   <h2>Miscellaneous</h2>
 </a>
   Uncategorized attributes of Overseer to serve as a collection for function and stuff like that. Belong to
