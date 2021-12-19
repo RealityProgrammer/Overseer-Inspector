@@ -51,9 +51,9 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
                     StringBuilder sb = new StringBuilder();
                     sb.AppendLine("MethodButtonAttribute cannot be used for methods with invalid parameter. Informations:");
                     sb.Append("Method name: ").AppendLine(um.Name);
-                    sb.Append("Method declaring type: ").AppendLine(um.DeclaringType.AssemblyQualifiedName);
+                    sb.Append("Method declaring type: ").AppendLine(um.DeclaringType.FullName);
                     sb.Append("Invalid parameter: ").AppendLine(parameter.Name);
-                    sb.Append("Invalid parameter type: ").AppendLine(parameter.ParameterType.AssemblyQualifiedName);
+                    sb.Append("Invalid parameter type: ").AppendLine(parameter.ParameterType.FullName);
 
                     Debug.LogWarning(sb.ToString());
 

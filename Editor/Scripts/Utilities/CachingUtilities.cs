@@ -210,29 +210,29 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
         //    }
         //}
 
-        public static ReadOnlyCollection<OverseerInspectingMember> RetrieveInspectingMembers(SerializedProperty property) {
-            var all = new List<OverseerInspectingMember>();
-            var fieldInfo = property.GetFieldInfo(property.serializedObject.targetObject.GetType());
+        // public static ReadOnlyCollection<OverseerInspectingMember> RetrieveInspectingMembers(SerializedProperty property) {
+            // var all = new List<OverseerInspectingMember>();
+            // var fieldInfo = property.GetFieldInfo(property.serializedObject.targetObject.GetType());
 
-            var reflectionUnits = RetrieveReflectionUnits(fieldInfo.FieldType);
+            // var reflectionUnits = RetrieveReflectionUnits(fieldInfo.FieldType);
 
-            using (SerializedProperty iterator = property.Copy()) {
-                do {
-                    if (iterator.type == "ArraySize")
-                        continue;
+            // using (SerializedProperty iterator = property.Copy()) {
+                // do {
+                    // if (iterator.type == "ArraySize")
+                        // continue;
 
-                    Debug.Log("Iterator: " + iterator.name);
-                } while (iterator.Next(false));
-            }
+                    // Debug.Log("Iterator: " + iterator.name);
+                // } while (iterator.Next(false));
+            // }
 
-            foreach (var pair in reflectionUnits) {
-                if (pair.Value.Type == ReflectionTargetType.Field) continue;
+            // foreach (var pair in reflectionUnits) {
+                // if (pair.Value.Type == ReflectionTargetType.Field) continue;
 
-                Debug.Log("Field: " + pair.Key);
-            }
+                // Debug.Log("Field: " + pair.Key);
+            // }
 
-            return new ReadOnlyCollection<OverseerInspectingMember>(all);
-        }
+            // return new ReadOnlyCollection<OverseerInspectingMember>(all);
+        // }
 
         #region Reflection Caches
         private static readonly Dictionary<Type, Dictionary<string, ReflectionCacheUnit>> _reflectionUnitStorage = new Dictionary<Type, Dictionary<string, ReflectionCacheUnit>>();
@@ -251,7 +251,6 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
 
             foreach (var unit in RetrieveAllMethodUnits(type)) {
                 dict.Add(unit.Name, unit);
-                Debug.Log(unit.Name);
             }
 
             foreach (var unit in RetrieveAllPropertyUnits(type)) {
