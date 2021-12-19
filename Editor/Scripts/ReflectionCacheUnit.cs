@@ -14,8 +14,10 @@ namespace RealityProgrammer.OverseerInspector.Editors {
         public ReflectionTargetType Type { get; private set; }
 
         public FieldInfo UnderlyingField { get; private set; }
-        public MethodInfo UnderlyingMethod { get; private set; }
+        public MethodInfo[] UnderlyingMethods { get; private set; }
         public PropertyInfo UnderlyingProperty { get; private set; }
+
+        public MethodInfo UnderlyingMethod => UnderlyingMethods[0];
 
         public BasePrimaryDrawerAttribute PrimaryDrawerAttribute { get; private set; }
         public List<AdditionDrawerAttribute> Additionals { get; private set; }
@@ -87,15 +89,15 @@ namespace RealityProgrammer.OverseerInspector.Editors {
 
             return unit;
         }
-        internal static ReflectionCacheUnit Create(MethodInfo method) {
-            if (method == null) {
-                Debug.LogError("Overseer Inspector Internal: Trying to create an ReflectionCacheUnit with null underlying method");
+        internal static ReflectionCacheUnit Create(MethodInfo[] methods) {
+            if (methods == null) {
+                Debug.LogError("Overseer Inspector Internal: Trying to create an ReflectionCacheUnit with null underlying methods");
                 return null;
             }
 
             ReflectionCacheUnit unit = new ReflectionCacheUnit {
                 Type = ReflectionTargetType.Method,
-                UnderlyingMethod = method
+                UnderlyingMethods = methods
             };
             unit.InitializeAttributes(unit.UnderlyingMethod);
 

@@ -10,21 +10,22 @@ using RealityProgrammer.OverseerInspector.Runtime.Validation;
 namespace RealityProgrammer.OverseerInspector.Editors.Validators {
     [ConditionalConnect(typeof(ShowIfAttribute))]
     public class ShowIfConditionalValidator : BaseConditionalValidator {
-        private class AuroraCacheUnit {
-            public AuroraScanner Scanner { get; set; }
-            public AuroraLexer Lexer { get; set; }
-            public AuroraInterpreter Interpreter { get; set; }
-
-            public BaseExpression Expression { get; set; }
-
+        internal struct Cache {
             public string ErrorMessage { get; set; }
-
-            public object Interpret() {
-                return Interpreter.InterpretExpression(Expression);
-            }
+            public BaseExpression InterpretExpression { get; set; }
         }
 
-        private static readonly Dictionary<ShowIfAttribute, AuroraCacheUnit> _showIfAuroraCache = new Dictionary<ShowIfAttribute, AuroraCacheUnit>();
+        private static readonly Dictionary<ShowIfAttribute, Cache> _showIfAuroraCache = new Dictionary<ShowIfAttribute, Cache>();
+
+        private static readonly AuroraScanner s_Scanner;
+        private static readonly AuroraLexer s_Lexer;
+        private static readonly AuroraInterpreter s_Interpreter;
+
+        static ShowIfConditionalValidator() {
+            s_Scanner = new AuroraScanner();
+            s_Lexer = new AuroraLexer();
+            s_Interpreter = new AuroraInterpreter();
+        }
 
         public override bool Validate(ValidateContext context) {
             var sia = (ShowIfAttribute)context.Attribute;
@@ -36,24 +37,25 @@ namespace RealityProgrammer.OverseerInspector.Editors.Validators {
                     return true;
                 }
 
-                bool interpret = (bool)cache.Interpret();
+                s_Interpreter.BindInterpretingTarget(context.ValidateTarget);
+
+                bool interpret = (bool)s_Interpreter.InterpretExpression(cache.InterpretExpression);
 
                 return interpret;
             } else {
-                cache = new AuroraCacheUnit();
+                cache = new Cache();
                 _showIfAuroraCache.Add(sia, cache);
 
                 try {
-                    cache.Scanner = new AuroraScanner();
-                    var tokens = cache.Scanner.Scan(sia.Program);
+                    var tokens = s_Scanner.Scan(sia.Program);
 
-                    cache.Lexer = new AuroraLexer(tokens);
-                    cache.Lexer.BindTarget(context.ValidateTarget);
-                    cache.Expression = cache.Lexer.BeginLexing();
+                    s_Lexer.BindTarget(context.ValidateTarget);
+                    s_Lexer.FeedTokens(tokens);
 
-                    cache.Interpreter = new AuroraInterpreter();
-                    cache.Interpreter.BindInterpretingTarget(context.ValidateTarget);
-                    var result = cache.Interpret();
+                    cache.InterpretExpression = s_Lexer.BeginLexing();
+
+                    s_Interpreter.BindInterpretingTarget(context.ValidateTarget);
+                    var result = s_Interpreter.InterpretExpression(cache.InterpretExpression);
 
                     if (result is bool boolean) {
                         return boolean;

@@ -11,7 +11,7 @@ namespace RealityProgrammer.OverseerInspector.Editors.Miscs.Aurora {
 
         GreaterEqual, LessEqual, EqualEqual, BangEqual, ConditionalAnd, ConditionalOr,
 
-        Identifier, Number, String,
+        Identifier, Number, String, Character,
 
         True, False, Null,
 

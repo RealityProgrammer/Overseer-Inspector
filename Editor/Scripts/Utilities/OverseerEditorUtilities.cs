@@ -341,11 +341,12 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
 #if UNITY_2022_1_OR_NEWER
         // The source binding of SerializedProperty has the property of boxedValue, so we will use it.
         // Prevent version breaking.
-        [Obsolete("Use SerializedProperty.boxedValue which added in 2022 version")]
+        [Obsolete("Use SerializedProperty.boxedValue which is added in 2022 version")]
         public static object GetBoxedValue(this SerializedProperty property) {
             return property.boxedValue;
         }
 #else
+        // For some reason, Unity hide the gradientValue
         private static Func<SerializedProperty, Gradient> _gradientValueGetter;
 
         public static object GetBoxedValue(this SerializedProperty property) {
@@ -385,6 +386,36 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
                     return null;
             }
         }
-    }
 #endif
+
+        public static Rect[] DivideRect(Rect rect, int count) {
+            float w = rect.width / count;
+
+            Rect[] output = new Rect[count];
+            var unit = new Rect(rect.x, rect.y, w, rect.height);
+
+            for (int i = 0; i < count; i++) {
+                output[i] = unit;
+                unit.x += w;
+            }
+
+            return output;
+        }
+
+        public static bool DoStacktraceBoxLayout(Exception e, bool foldout, int id) {
+            var evc = Event.current;
+
+            if (foldout) {
+                EditorGUILayout.HelpBox(e.ToString(), MessageType.Error, true);
+            } else {
+                EditorGUILayout.HelpBox(e.GetType().Name + ": " + e.Message, MessageType.Error, true);
+            }
+
+            if (evc.GetTypeForControl(id) == EventType.MouseDown && evc.button == 0 && GUILayoutUtility.GetLastRect().Contains(evc.mousePosition)) {
+                foldout = !foldout;
+            }
+
+            return foldout;
+        }
+    }
 }

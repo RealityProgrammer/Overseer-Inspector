@@ -12,7 +12,7 @@ using RealityProgrammer.OverseerInspector.Runtime.Drawers;
 
 namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
     [BindDrawerTo(typeof(MethodButtonAttribute))]
-    public class MethodButtonDrawer : BaseMethodPrimaryDrawer {
+    public class MethodButtonDrawer : BasePrimaryMethodDrawer {
         private ParameterInfo[] parameterInfos;
         public object[] Parameters { get; private set; }
 

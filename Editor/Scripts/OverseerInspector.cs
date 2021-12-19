@@ -32,6 +32,13 @@ namespace RealityProgrammer.OverseerInspector.Editors {
                 allMembers = CachingUtilities.RetrieveInspectingMembers(serializedObject);
                 _displayables = OverseerEditorUtilities.AutoInitializeInspector(serializedObject);
             }
+
+            //var field = serializedObject.FindProperty("nestingTest").GetFieldInfo(serializedObject.targetObject.GetType());
+            //foreach (var member in CachingUtilities.RetrieveReflectionUnits(field.ReflectedType)) {
+            //    Debug.Log(member.Key);
+            //}
+
+            //OverseerEditorUtilities.AutoInitializeDisplayables(serializedObject.FindProperty("nestingTest"));
         }
 
         static void CheckLightTheme() {
@@ -46,6 +53,8 @@ namespace RealityProgrammer.OverseerInspector.Editors {
 
         public override void OnInspectorGUI() {
             if (CachingUtilities.CheckOverseerQualified(target.GetType())) {
+                CurrentInspector = this;
+
                 _requestConstantRepaint = false;
 
                 serializedObject.Update();
@@ -57,7 +66,7 @@ namespace RealityProgrammer.OverseerInspector.Editors {
 
                 foreach (var displayable in _displayables) {
                     if (displayable == null) {
-                        Debug.LogWarning("Something went wrong. Overseer Inspector detected a null displayable element.");
+                        Debug.LogError("Something went wrong. Overseer Inspector detected a null displayable element.");
 
                         continue;
                     }

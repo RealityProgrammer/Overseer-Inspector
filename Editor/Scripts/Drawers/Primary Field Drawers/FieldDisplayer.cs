@@ -3,11 +3,9 @@ using UnityEngine;
 using RealityProgrammer.OverseerInspector.Editors.Utility;
 
 namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
-    public class FieldDisplayer : BaseFieldPrimaryDrawer {
+    public class FieldDisplayer : BasePrimaryFieldDrawer {
         public override void DrawLayout() {
             if (!AssociatedMember.ConditionalCheck) {
-                //EditorGUILayout.HelpBox(AssociatedMember.ConditionalCheckReturn.Message, MessageType.Error, true);
-
                 return;
             }
 

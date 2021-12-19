@@ -11,6 +11,8 @@ namespace RealityProgrammer.OverseerInspector.Editors.Miscs.Aurora {
         public const string TreeLastBranch = "\u255A\u2550\u2550";
         public const string TreeNonLastBranch = "\u2560\u2550\u2550";
 
+        public const NumericType NumericTypeMask = (NumericType)0b00000000_11111111_11111111_11111111;
+
         public static string DebugExpressionTree(BaseExpression expr) {
             StringBuilder sb = new StringBuilder();
 
@@ -121,14 +123,20 @@ namespace RealityProgrammer.OverseerInspector.Editors.Miscs.Aurora {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsUnsigned(this NumericType nt) {
-            return (int)(nt & NumericType.Unsigned) != 0;
+            return (nt & NumericType.Unsigned) != 0;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NumericType MaskNumericType(this NumericType nt) {
+            return nt & NumericTypeMask;
         }
 
         public static void InitializeEverything(string program, object bindTarget, out AuroraScanner scanner, out AuroraLexer lexer, out BaseExpression lexed, out AuroraInterpreter interpreter) {
             scanner = new AuroraScanner();
             var tokens = scanner.Scan(program);
 
-            lexer = new AuroraLexer(tokens);
+            lexer = new AuroraLexer();
+            lexer.FeedTokens(tokens);
             lexer.BindTarget(bindTarget);
             lexed = lexer.BeginLexing();
 

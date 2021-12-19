@@ -66,9 +66,6 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             }
         }
         public static bool CheckOverseerQualified(Type type) {
-            if (!type.IsSubclassOf(UnityEngineObjectType))
-                return false;
-
             if (_inspectorEnabledTypes.Contains(type)) {
                 return true;
             } else {
@@ -93,25 +90,147 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             var reflectionUnits = RetrieveReflectionUnits(serializedObject.targetObject.GetType());
 
             using (SerializedProperty iterator = serializedObject.GetIterator()) {
-                List<OverseerInspectingMember> output = new List<OverseerInspectingMember>();
-
                 if (iterator.NextVisible(true)) {                       // This one is required by unity for a very understandable reason
-                    while (iterator.NextVisible(false)) {       // use while instead of do..while to skip over the m_Script property
-                        if (iterator.type == "ArraySize")
-                            continue;
+                    while (iterator.NextVisible(false)) {                // use while instead of do..while to skip over the m_Script property
+                        if (iterator.type == "ArraySize") continue;
 
                         all.Add(OverseerInspectingMember.Create(iterator.Copy(), reflectionUnits[iterator.name], serializedObject.targetObject));
+
+                        #region WIP
+                        //Debug.Log("Iterate through " + iterator.name);
+
+                        //string[] pathTokens = iterator.propertyPath.Split('.');
+
+                        //var containerObject = serializedObject.targetObject;
+                        //var reflectionUnits = RetrieveReflectionUnits(containerObject.GetType());
+                        //var fieldInfo = reflectionUnits[pathTokens[0]].UnderlyingField;
+
+                        //HandleNestingProperty(iterator, containerObject, all);
+
+                        //Debug.Log("Iterate through " + iterator.name);
+
+                        //if (SerializedProperty.EqualContents(iterator, endProperty)) {
+                        //    break;
+                        //}
+
+                        //if (iterator.type == "ArraySize") {             // Don't need this for now
+                        //    continue;
+                        //}
+
+                        //var nextSibling = iterator.Copy();
+                        //nextSibling.NextVisible(false);
+
+                        //object containerObject = serializedObject.targetObject;
+                        //string[] pathTokens = iterator.propertyPath.Split('.');
+
+                        //var reflectionUnits = RetrieveReflectionUnits(containerObject.GetType());
+                        //var fieldInfo = reflectionUnits[pathTokens[0]].UnderlyingField;
+
+                        //if (iterator.propertyType == SerializedPropertyType.Generic) {
+                        //    if (CachingUtilities.CheckOverseerQualified(fieldInfo.FieldType)) {
+
+                        //    }
+
+                        //    do {
+                        //        Debug.Log(iterator.name + ", " + SerializedProperty.EqualContents(iterator, nextSibling));
+
+                        //        if (SerializedProperty.EqualContents(iterator, nextSibling)) break;
+                        //        //iterator.NextVisible(true);
+                        //    } while (iterator.NextVisible(false));
+                        //} else {
+                        //    all.Add(OverseerInspectingMember.Create(iterator.Copy(), reflectionUnits[pathTokens[0]], serializedObject.targetObject));
+                        //}
+
+                        //all.AddRange(BuildInspectingMembersFromProperty(iterator, serializedObject.targetObject));
+
+                        //Type parentType = serializedObject.targetObject.GetType();
+
+                        //object containerObject = serializedObject.targetObject;
+                        //var reflectionUnit = RetrieveReflectionUnits(containerObject.GetType());
+
+                        //var fieldInfo = reflectionUnit[pathTokens[0]].UnderlyingField;
+
+                        ////Debug.Log(0 + ": FieldInfo name: " + fieldInfo.Name + ". Container object: " + containerObject);
+
+                        //if (iterator.propertyType == SerializedPropertyType.Generic && fieldInfo.FieldType.GetCustomAttribute<EnableOverseerInspectorAttribute>() != null) {
+                        //    for (int i = 1; i < pathTokens.Length; i++) {
+                        //        var fieldName = pathTokens[i];
+
+                        //        containerObject = fieldInfo.GetValue(containerObject);
+                        //        reflectionUnit = RetrieveReflectionUnits(containerObject.GetType());
+                        //        fieldInfo = reflectionUnit[pathTokens[i]].UnderlyingField;
+
+                        //        all.Add(OverseerInspectingMember.Create(iterator.Copy(), reflectionUnit[pathTokens[0]], containerObject));
+
+                        //        //Debug.Log(i + ": FieldInfo name: " + fieldInfo.Name + ". Container object: " + containerObject);
+                        //    }
+                        //    //Debug.LogWarning("Nesting is not supported yet");
+                        //    //all.Add(OverseerInspectingMember.Create(iterator.Copy(), reflectionUnit[pathTokens[0]], serializedObject.targetObject));
+                        //} else {
+                        //    all.Add(OverseerInspectingMember.Create(iterator.Copy(), reflectionUnit[pathTokens[0]], serializedObject.targetObject));
+                        //}
+
+                        //Debug.Log("Iterator's name: " + iterator.name + ". Path: " + iterator.propertyPath + ". Type: " + iterator.propertyType);
+                        //all.Add(OverseerInspectingMember.Create(iterator.Copy(), reflectionUnits[iterator.name], serializedObject.targetObject));
+                        #endregion
                     }
                 }
             }
 
-            foreach (var pair in reflectionUnits) {
+            var _reflectionUnits = RetrieveReflectionUnits(serializedObject.targetObject.GetType());
+            foreach (var pair in _reflectionUnits) {
                 if (pair.Value.Type == ReflectionTargetType.Field) continue;
 
                 all.Add(OverseerInspectingMember.Create(null, pair.Value, serializedObject.targetObject));
             }
 
             _allMembers[serializedObject] = all;
+            return new ReadOnlyCollection<OverseerInspectingMember>(all);
+        }
+
+        //private static int nestingLevel = 0;
+        //internal static void HandleNestingProperty(SerializedProperty iterator, object container, List<OverseerInspectingMember> output) {
+        //    string[] pathTokens = iterator.propertyPath.Split('.');
+        //    var reflectionUnits = RetrieveReflectionUnits(container.GetType());
+
+        //    var fieldInfo = reflectionUnits[pathTokens[nestingLevel]].UnderlyingField;
+
+        //    if (iterator.propertyType == SerializedPropertyType.Generic && CheckOverseerQualified(fieldInfo.FieldType)) {
+        //        container = fieldInfo.GetValue(container);
+
+        //        output.Add(OverseerInspectingMember.Create(iterator.Copy(), reflectionUnits[pathTokens[nestingLevel]], container));
+
+        //        nestingLevel++;
+        //        foreach (var child in GetCopiesVisibleChildren(iterator)) {
+        //            HandleNestingProperty(child, container, output);
+        //        }
+        //        nestingLevel--;
+        //    } else {
+        //        output.Add(OverseerInspectingMember.Create(iterator.Copy(), reflectionUnits[pathTokens[nestingLevel]], container));
+        //    }
+        //}
+
+        public static ReadOnlyCollection<OverseerInspectingMember> RetrieveInspectingMembers(SerializedProperty property) {
+            var all = new List<OverseerInspectingMember>();
+            var fieldInfo = property.GetFieldInfo(property.serializedObject.targetObject.GetType());
+
+            var reflectionUnits = RetrieveReflectionUnits(fieldInfo.FieldType);
+
+            using (SerializedProperty iterator = property.Copy()) {
+                do {
+                    if (iterator.type == "ArraySize")
+                        continue;
+
+                    Debug.Log("Iterator: " + iterator.name);
+                } while (iterator.Next(false));
+            }
+
+            foreach (var pair in reflectionUnits) {
+                if (pair.Value.Type == ReflectionTargetType.Field) continue;
+
+                Debug.Log("Field: " + pair.Key);
+            }
+
             return new ReadOnlyCollection<OverseerInspectingMember>(all);
         }
 
@@ -132,6 +251,7 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
 
             foreach (var unit in RetrieveAllMethodUnits(type)) {
                 dict.Add(unit.Name, unit);
+                Debug.Log(unit.Name);
             }
 
             foreach (var unit in RetrieveAllPropertyUnits(type)) {
@@ -173,24 +293,14 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
         internal static IEnumerable<ReflectionCacheUnit> RetrieveAllMethodUnits(Type type) {
             if (type == null) yield break;
 
-            foreach (MethodInfo method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)) {
-                if (method.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
-                if (method.GetParameters().Length != 0) continue;
-
-                if (method.GetCustomAttributes<BaseOverseerAttribute>().Any()) {
-                    yield return ReflectionCacheUnit.Create(method);
-                }
+            foreach (var methodGroup in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly).Where(x => x.GetCustomAttribute<ObsoleteAttribute>() == null).GroupBy(x => x.Name)) {
+                yield return ReflectionCacheUnit.Create(methodGroup.ToArray());
             }
 
             var baseType = type.BaseType;
             while (baseType != null) {
-                foreach (MethodInfo method in baseType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)) {
-                    if (method.GetCustomAttribute<ObsoleteAttribute>() != null) continue;
-                    if (method.GetParameters().Length != 0) continue;
-
-                    if (method.GetCustomAttributes<BaseOverseerAttribute>().Any()) {
-                        yield return ReflectionCacheUnit.Create(method);
-                    }
+                foreach (var methodGroup in baseType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly).Where(x => x.GetCustomAttribute<ObsoleteAttribute>() == null && x.GetCustomAttributes<BaseOverseerAttribute>().Any()).GroupBy(x => x.Name)) {
+                    yield return ReflectionCacheUnit.Create(methodGroup.ToArray());
                 }
 
                 baseType = baseType.BaseType;
@@ -222,5 +332,41 @@ namespace RealityProgrammer.OverseerInspector.Editors.Utility {
             }
         }
         #endregion
+
+        public static FieldInfo GetFieldInfo(this SerializedProperty property, Type type) {
+            var path = property.propertyPath;
+
+            Type parentType = type;
+            FieldInfo fi = type.GetField(path);
+
+            string[] perDot = path.Split('.');
+
+            foreach (string fieldName in perDot) {
+                fi = parentType.GetField(fieldName);
+
+                if (fi != null)
+                    parentType = fi.FieldType;
+                else
+                    return null;
+            }
+
+            return fi;
+        }
+
+        public static IEnumerable<SerializedProperty> GetCopiesVisibleChildren(this SerializedProperty serializedProperty) {
+            SerializedProperty currentProperty = serializedProperty.Copy();
+            SerializedProperty nextSiblingProperty = serializedProperty.Copy();
+            nextSiblingProperty.NextVisible(false);
+
+            if (currentProperty.NextVisible(true)) {
+                do {
+                    if (SerializedProperty.EqualContents(currentProperty, nextSiblingProperty))
+                        break;
+
+                    yield return currentProperty.Copy();
+                }
+                while (currentProperty.NextVisible(false));
+            }
+        }
     }
 }

@@ -38,19 +38,29 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers.Group {
             });
         }
 
+        public const float HeaderSpace = 2;
+
+        BeginFoldoutGroupAttribute underlyingAttr;
+
+        public override void Initialize() {
+            underlyingAttr = AssociatedAttribute as BeginFoldoutGroupAttribute;
+        }
+
         public override void DrawLayout() {
             var rect = EditorGUILayout.BeginVertical();
 
             if (Event.current.type == EventType.Repaint) {
-                boxStyle.Draw(EditorGUI.IndentedRect(rect), false, false, false, false);
+                var indentRect = EditorGUI.IndentedRect(rect);
+
+                boxStyle.Draw(indentRect, false, false, false, false);
             }
 
             using (new EditorGUI.IndentLevelScope()) {
-                EditorGUILayout.Space(3);
+                EditorGUILayout.Space(HeaderSpace);
 
                 DoFoldoutHeader();
 
-                EditorGUILayout.Space(3);
+                EditorGUILayout.Space(HeaderSpace);
 
                 if (foldoutAnim.faded > 0.001f) {
                     EditorGUILayout.BeginFadeGroup(foldoutAnim.faded);
@@ -71,9 +81,9 @@ namespace RealityProgrammer.OverseerInspector.Editors.Drawers.Group {
             int id = GUIUtility.GetControlID(FocusType.Passive);
 
             var old = EditorStyles.label.fontStyle;
-            EditorStyles.label.fontStyle = (AssociatedAttribute as BeginFoldoutGroupAttribute).FontStyle;
+            EditorStyles.label.fontStyle = underlyingAttr.FontStyle;
 
-            EditorGUILayout.LabelField((AssociatedAttribute as BeginFoldoutGroupAttribute).Name);
+            EditorGUILayout.LabelField(underlyingAttr.Name);
 
             EditorStyles.label.fontStyle = old;
 

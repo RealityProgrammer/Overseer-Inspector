@@ -6,7 +6,7 @@ using RealityProgrammer.OverseerInspector.Runtime.Miscs;
 using RealityProgrammer.OverseerInspector.Editors.Utility;
 
 namespace RealityProgrammer.OverseerInspector.Editors.Drawers {
-    public abstract class BaseFieldPrimaryDrawer : BasePrimaryDrawer {
+    public abstract class BasePrimaryFieldDrawer : BasePrimaryDrawer {
         public bool BeginHandleReadonly() {
             var attr = AssociatedMember.ReflectionCache.ReadonlyField;
 

@@ -1,5 +1,6 @@
-using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System;
 using System.Text;
 using UnityEngine;
 
@@ -29,6 +30,12 @@ namespace RealityProgrammer.OverseerInspector.Editors.Miscs.Aurora {
         public List<LexerToken> Scan(string source) {
             sourceProgram = source;
             _tokens.Clear();
+
+            if (string.IsNullOrEmpty(source)) {
+                _tokens.Add(new LexerToken(TokenType.EOF, null, string.Empty));
+
+                return _tokens;
+            }
 
             start = 0;
             position = 0;
@@ -86,9 +93,7 @@ namespace RealityProgrammer.OverseerInspector.Editors.Miscs.Aurora {
                     break;
 
                 case '"':
-                    while (Peek() != '"' && !IsProgramEnd()) {
-                        Advance();
-                    }
+                    SkipUntilMatch('"');
 
                     if (IsProgramEnd()) {
                         Debug.LogWarning("Unterminated string discovered at position " + start + ". Handling...");
@@ -98,7 +103,130 @@ namespace RealityProgrammer.OverseerInspector.Editors.Miscs.Aurora {
                     }
 
                     Advance();
-                    AddToken(TokenType.String, sourceProgram.Substring(start + 1, position - start - 2));
+                    AddToken(TokenType.String, Regex.Unescape(sourceProgram.Substring(start + 1, position - start - 2)));
+                    break;
+
+                case '\'':
+                    var advance = Advance();
+
+                    if (advance == '\\') {
+                        switch (Peek()) {
+                            case '0':
+                                AddCharacterToken('\0');
+                                Advance();
+                                break;
+
+                            case 'a':
+                                AddCharacterToken('\a');
+                                Advance();
+                                break;
+
+                            case 'b':
+                                AddCharacterToken('\b');
+                                Advance();
+                                break;
+
+                            case 'f':
+                                AddCharacterToken('\f');
+                                Advance();
+                                break;
+
+                            case 'n':
+                                AddCharacterToken('\n');
+                                Advance();
+                                break;
+
+                            case 'r':
+                                AddCharacterToken('\r');
+                                Advance();
+                                break;
+
+                            case 't':
+                                AddCharacterToken('\t');
+                                Advance();
+                                break;
+
+                            case 'v':
+                                AddCharacterToken('\v');
+                                Advance();
+                                break;
+
+                            case '\'':
+                                AddCharacterToken('\'');
+                                Advance();
+                                break;
+
+                            case '"':
+                                AddCharacterToken('"');
+                                Advance();
+                                break;
+
+                            case '\\':
+                                AddCharacterToken('\\');
+                                Advance();
+                                break;
+
+                            case 'u': {
+                                Advance();
+
+                                int pos = position;
+                                SkipUntilMatch('\'');
+                                Advance();
+
+                                if (position - pos - 1 != 4) {
+                                    Debug.LogError("Escape character 'u' need to be provided with exactly 4 hexadecimal digits.");
+                                    AddCharacterToken('\0');
+                                    return;
+                                }
+
+                                AddCharacterToken(Regex.Unescape("\\u" + sourceProgram.Substring(pos, position - pos - 1))[0]);
+                                break;
+                            }
+
+                            // Regex.Unescape doesn't recognise '\U'
+                            //case 'U': {
+                            //    Advance();
+
+                            //    int pos = position;
+                            //    SkipUntilMatch('\'');
+                            //    Advance();
+
+                            //    if (position - pos - 1 != 8) {
+                            //        Debug.LogError("Escape character 'U' need to be provided with exactly 8 hexadecimal digits.");
+                            //        AddCharacterToken('\0');
+                            //        return;
+                            //    }
+
+                            //    Debug.Log("\\U" + sourceProgram.Substring(pos, position - pos - 1));
+                            //    AddCharacterToken(Regex.Unescape("\\U" + sourceProgram.Substring(pos, position - pos - 1))[0]);
+                            //    break;
+                            //}
+
+                            default:
+                                Debug.LogError("Unknown escape character at position " + position + ": " + Peek());
+                                SkipUntilMatch('\'');
+
+                                Advance();
+                                break;
+                        }
+
+                        if (!Match('\'')) {
+                            Debug.LogError("Expected an single quote to end character literal.");
+                        }
+                    } else {
+                        if (advance == '\'') {
+                            Debug.LogError("Empty character literal at position " + position);
+                        } else {
+                            //AddCharacterToken(advance);
+                            if (!Match('\'')) {
+                                Debug.LogError("Too many characters in character literal at position: " + start);
+                                SkipUntilMatch('\'');
+                                Advance();
+                            }
+
+                            AddToken(TokenType.Character, advance);
+                        }
+                    }
                     break;
 
                 default:
@@ -160,8 +288,11 @@ namespace RealityProgrammer.OverseerInspector.Editors.Miscs.Aurora {
                         NumericType integerNumericType = NumericType.Int;
 
                         bool isChecking = true;
+                        bool explicitLiteral = false;
+
                         while (isChecking) {
                             char peek = Peek();
+
                             switch (peek) {
                                 case 'u':
                                 case 'U':
@@ -176,10 +307,50 @@ namespace RealityProgrammer.OverseerInspector.Editors.Miscs.Aurora {
 
                                 case 'l':
                                 case 'L':
-                                    if ((int)(integerNumericType & NumericType.Long) == 0) {
-                                        integerNumericType = integerNumericType.IsUnsigned() ? (NumericType.Long | NumericType.Unsigned) : NumericType.Long;
+                                    if (!explicitLiteral) {
+                                        explicitLiteral = true;
+
+                                        if (integerNumericType.MaskNumericType() != NumericType.Long) {
+                                            integerNumericType = integerNumericType.IsUnsigned() ? (NumericType.Long | NumericType.Unsigned) : NumericType.Long;
+                                        } else {
+                                            Debug.LogWarning("Multiple long literals discovered.");
+                                        }
                                     } else {
-                                        Debug.LogWarning("Multiple long literals discovered.");
+                                        Debug.LogWarning("Multiple long literals discovered");
+                                    }
+
+                                    Advance();
+                                    break;
+
+                                case 's':
+                                case 'S':
+                                    if (!explicitLiteral) {
+                                        explicitLiteral = true;
+
+                                        if (integerNumericType.MaskNumericType() != NumericType.Short) {
+                                            integerNumericType = integerNumericType.IsUnsigned() ? (NumericType.Short | NumericType.Unsigned) : NumericType.Short;
+                                        } else {
+                                            Debug.LogWarning("Multiple short literals discovered.");
+                                        }
+                                    } else {
+                                        Debug.LogWarning("Multiple short literals discovered");
+                                    }
+
+                                    Advance();
+                                    break;
+
+                                case 'b':
+                                case 'B':
+                                    if (!explicitLiteral) {
+                                        explicitLiteral = true;
+
+                                        if (integerNumericType.MaskNumericType() != NumericType.Byte) {
+                                            integerNumericType = integerNumericType.IsUnsigned() ? (NumericType.Byte | NumericType.Unsigned) : NumericType.Byte;
+                                        } else {
+                                            Debug.LogWarning("Multiple byte literals discovered.");
+                                        }
+                                    } else {
+                                        Debug.LogWarning("Multiple byte literals discovered");
                                     }
 
                                     Advance();
@@ -191,7 +362,7 @@ namespace RealityProgrammer.OverseerInspector.Editors.Miscs.Aurora {
                             }
                         }
 
-                        NumericType numericType = (NumericType)((int)integerNumericType & 0x00FFFFFF);
+                        NumericType numericType = integerNumericType.MaskNumericType();
                         bool unsigned = integerNumericType.IsUnsigned();
 
                         switch (numericType) {
@@ -213,6 +384,12 @@ namespace RealityProgrammer.OverseerInspector.Editors.Miscs.Aurora {
                         }
                     }
                     break;
+            }
+        }
+
+        void SkipUntilMatch(char c) {
+            while (Peek() != c && !IsProgramEnd()) {
+                Advance();
             }
         }
 
@@ -270,6 +447,10 @@ namespace RealityProgrammer.OverseerInspector.Editors.Miscs.Aurora {
             _tokens.Add(token);
 
             return token;
+        }
+
+        private LexerToken AddCharacterToken(char character) {
+            return AddToken(TokenType.Character, character);
         }
 
         public string DebugTokenOutput() {
