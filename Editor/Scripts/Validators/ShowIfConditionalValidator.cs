@@ -10,7 +10,7 @@ using RealityProgrammer.OverseerInspector.Runtime.Validation;
 namespace RealityProgrammer.OverseerInspector.Editors.Validators {
     [ConditionalConnect(typeof(ShowIfAttribute))]
     public class ShowIfConditionalValidator : BaseConditionalValidator {
-        internal struct Cache {
+        internal class Cache {
             public string ErrorMessage { get; set; }
             public BaseExpression InterpretExpression { get; set; }
         }
@@ -66,6 +66,7 @@ namespace RealityProgrammer.OverseerInspector.Editors.Validators {
                     }
                 } catch (Exception e) {
                     cache.ErrorMessage = e.GetType().Name + " were thrown: " + e.Message;
+                    Debug.LogError("Exception were thrown while trying to interpret ShowIfConditionalValidator: " + cache.ErrorMessage);
                 }
 
                 return true;
